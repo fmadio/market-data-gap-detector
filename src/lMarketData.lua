@@ -14,10 +14,10 @@ local ffi_string	= ffi.string
 
 ----------------------------------------------------------------------------------------------------
 -- nasdaq total view itch V5
-g_ProtocolList["./omi/Nasdaq/Nasdaq.Equities.TotalView.Itch.v5.0.h"] = function()
+g_ProtocolList["./omi/nasdaq/Nasdaq.Equities.TotalView.Itch.v5.0.h"] = function()
 
 	-- load header definitions 
-	ffi.cdef('#include "./omi/Nasdaq/Nasdaq.Equities.TotalView.Itch.v5.0.h"')
+	ffi.cdef('#include "./omi/nasdaq/Nasdaq.Equities.TotalView.Itch.v5.0.h"')
 
 	-- reference packet
 	local RefPacket 	= ffi.new("PacketT")
@@ -46,10 +46,10 @@ end
 
 ----------------------------------------------------------------------------------------------------
 -- siac opra
-g_ProtocolList["./omi/Siac.Opra.Recipient.Obi.v4.0.h"] = function()
+g_ProtocolList["./omi/siac.Opra.Recipient.Obi.v4.0.h"] = function()
 
 	-- load header definitions 
-	ffi.cdef('#include "./omi/Siac/Siac.Opra.Recipient.Obi.v4.0.h"')
+	ffi.cdef('#include "./omi/siac/Siac.Opra.Recipient.Obi.v4.0.h"')
 
 	-- reference packet
 	local RefPacket 		= ffi.new("BlockHeaderT")
