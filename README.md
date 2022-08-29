@@ -1,13 +1,9 @@
 # FMADIO Open Market Data Gap Detector
 [FMADIO Website](https://fmad.io)
 
-
-
-
 Example Usage:
 
-OPERA gap Detector 
-
+OPRA gap Detector 
 
 '''
 
