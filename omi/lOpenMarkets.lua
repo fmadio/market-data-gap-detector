@@ -45,6 +45,73 @@ g_ProtocolList["./omi/nasdaq/Nasdaq.Equities.TotalView.Itch.v5.0.h"] = function(
 end
 
 ----------------------------------------------------------------------------------------------------
+-- siac cqs 
+g_ProtocolList["./omi/Siac.Cqs.Output.Cta.v1.91.h"] = function()
+
+	-- load header definitions 
+	ffi.cdef('#include "./omi/siac/Siac.Cqs.Output.Cta.v1.91.h"')
+
+	-- reference packet
+	local RefPacket 		= ffi.new("BlockHeaderT")
+
+	-- local accel 
+	local Type_BlockHeaderT = ffi.typeof("BlockHeaderT*")
+
+	-- constants 
+
+
+	-- actual parser to return id, seqno and msg cnt
+	local Parser = function(_Payload, Type)
+	
+		local Block 	= ffi_cast(Type_BlockHeaderT, _Payload)
+		--trace("%i %10i %i\n", Block.Version, bit.bswap(Block.BlockSequenceNumber), Block.MessagesInBlock)
+
+		local Session	= "" 
+		local SeqNo 	= bit.bswap(Block.BlockSequenceNumber)
+		local Count 	= 1			-- meessage seq no is not correlated with the block seqno	 
+		local TS 		= 0 
+
+		return Session, SeqNo, Count, TS
+	end
+
+	return Parser
+end
+
+
+----------------------------------------------------------------------------------------------------
+-- siac cts 
+g_ProtocolList["./omi/Siac.Cts.Output.Cta.v1.91.h"] = function()
+
+	-- load header definitions 
+	ffi.cdef('#include "./omi/siac/Siac.Cts.Output.Cta.v1.91.h"')
+
+	-- reference packet
+	local RefPacket 		= ffi.new("BlockHeaderT")
+
+	-- local accel 
+	local Type_BlockHeaderT = ffi.typeof("BlockHeaderT*")
+
+	-- constants 
+
+
+	-- actual parser to return id, seqno and msg cnt
+	local Parser = function(_Payload, Type)
+	
+		local Block 	= ffi_cast(Type_BlockHeaderT, _Payload)
+		--trace("%i %10i %i\n", Block.Version, bit.bswap(Block.BlockSequenceNumber), Block.MessagesInBlock)
+
+		local Session	= "" 
+		local SeqNo 	= bit.bswap(Block.BlockSequenceNumber)
+		local Count 	= 1			-- meessage seq no is not correlated with the block seqno	 
+		local TS 		= 0 
+
+		return Session, SeqNo, Count, TS
+	end
+
+	return Parser
+end
+
+----------------------------------------------------------------------------------------------------
 -- siac opra
 g_ProtocolList["./omi/siac.Opra.Recipient.Obi.v4.0.h"] = function()
 

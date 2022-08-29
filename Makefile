@@ -16,7 +16,7 @@ LOBJS += src/StackTracePlus.e
 LOBJS += src/lcpp.e
 
 # open markets decoders
-LOBJS += omi/lDecoder.e
+LOBJS += omi/lOpenMarkets.e
 
 EXTLIBS =
 

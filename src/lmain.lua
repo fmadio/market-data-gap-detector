@@ -324,7 +324,7 @@ assert(ProtoPort ~= nil)
 
 
 g_ProtocolList = {}
-require("lMarketData")
+require("lOpenMarkets")
 
 local DecodeProto = g_ProtocolList[ ProtoName ] 
 if (DecodeProto == nil) then
