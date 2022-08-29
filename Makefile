@@ -12,9 +12,11 @@ OBJS += src/main.o
 
 LOBJS =
 LOBJS += src/lmain.e
-LOBJS += src/lMarketData.e
 LOBJS += src/StackTracePlus.e
 LOBJS += src/lcpp.e
+
+# open markets decoders
+LOBJS += omi/lDecoder.e
 
 EXTLIBS =
 
