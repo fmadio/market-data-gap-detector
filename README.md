@@ -56,6 +56,22 @@ For Gaps
 {"module":"market-data-gap","subsystem":"gap"        ,"timestamp":1661829075.291,"PCAPTime":"2017.09.07_14:00:54.035.130.307","PCAPTS":1504792854,"Protocol":"OPRA Market FeedA","Session":"udp_17114_","GapSize":1,"SeqExpect":34190873,"SeqFound":34190872}
 {"module":"market-data-gap","subsystem":"gap"        ,"timestamp":1661829075.490,"PCAPTime":"2017.09.07_14:00:54.206.939.414","PCAPTS":1504792854,"Protocol":"OPRA Market FeedA","Session":"udp_17114_","GapSize":1,"SeqExpect":34195912,"SeqFound":34195911}
 {"module":"market-data-gap","subsystem":"gap"        ,"timestamp":1661829075.907,"PCAPTime":"2017.09.07_14:00:54.691.991.120","PCAPTS":1504792854,"Protocol":"OPRA Market FeedA","Session":"udp_17114_","GapSize":1,"SeqExpect":34202028,"SeqFound":34202027}
+
+
+{
+  "module": "market-data-gap",
+  "subsystem": "gap",
+  "timestamp": 1661829074.349,
+  "PCAPTime": "2017.09.07_14:00:53.241.933.792",
+  "PCAPTS": 1504792853,
+  "Protocol": "OPRA Market FeedA",
+  "Session": "udp_17114_",
+  "GapSize": 1,
+  "SeqExpect": 34174629,
+  "SeqFound": 34174628
+}
+
+
 ```
 
 
@@ -63,5 +79,23 @@ For system monitoring
 
 ```
 {"module":"market-data-gap","subsystem":"status"        ,"timestamp":1661829075.175,"PCAPTime":"2017.09.07_14:00:53.916.619.658","PCAPTS":1504792853,"Protocol":"OPRA Market FeedA","TotalByte":455317486,"TotalPkt":3398572,"TotalGap":31,"TotalDrop":65848,"MarketGap_bps":1271890288,"MarketGap_pps":1186702,"MarketGap_mps":183940,"MarketGap_Lag":157036221}
+
+
+{
+  "module": "market-data-gap",
+  "subsystem": "status",
+  "timestamp": 1661829075.175,
+  "PCAPTime": "2017.09.07_14:00:53.916.619.658",
+  "PCAPTS": 1504792853,
+  "Protocol": "OPRA Market FeedA",
+  "TotalByte": 455317486,
+  "TotalPkt": 3398572,
+  "TotalGap": 31,
+  "TotalDrop": 65848,
+  "MarketGap_bps": 1271890288,
+  "MarketGap_pps": 1186702,
+  "MarketGap_mps": 183940,
+  "MarketGap_Lag": 157036221
+}
 
 ```
