@@ -300,6 +300,7 @@ end
 
 local ProtoName = nil
 local ProtoPort = nil
+local ProtoDesc = nil
 
 local i = 1
 while (i <= #ARGV)do
@@ -316,15 +317,52 @@ while (i <= #ARGV)do
 		i = i + 1
 		trace("   Protocol Port: %i\n", ProtoPort)
 	end
+	if (c == "--desc") then
+		ProtoDesc = (ARGV[i+1])
+		i = i + 1
+		trace("   Protocol Description: [%s]\n", ProtoDesc)
+	end
+	if (c == "-v") then
+		g_IsVerbose = true
+		trace("   Verbose Output\n") 
+	end
+
 	i = i + 1
 end
 
 assert(ProtoName ~= nil)
 assert(ProtoPort ~= nil)
 
+-- default to name
+if (ProtoDesc == nil) then ProtoDesc = ProtoName end
+
+-- gap detection logic
+require("lgap")
 
 g_ProtocolList = {}
 require("lOpenMarkets")
+
+----------------------------------------------------------------------------------------------------------------------------
+-- write even to syslog for ingest
+
+local SyslogFacility = "local7.info"
+
+Logger = function(Msg)
+
+	-- write to syslog
+	local JSON 	= Msg:gsub("\"", "\\\"")
+	os.execute('/usr/local/bin/logger -t fmadio -p '..SyslogFacility..' "'..JSON..'"')
+
+	-- optionaly print to screen
+	if (g_IsVerbose) then
+		trace("%s\n", Msg)
+		io.flush(io.stdout)
+		io.flush(io.stderr)
+	end
+end
+
+
+----------------------------------------------------------------------------------------------------------------------------
 
 local DecodeProto = g_ProtocolList[ ProtoName ] 
 if (DecodeProto == nil) then
@@ -335,62 +373,6 @@ end
 
 -- get parser
 local ProtoParser = DecodeProto()
-
-
-----------------------------------------------------------------------------------------------------------------------------
--- gap detector
-
--- gap detector 
-local g_SessionList			= {}
-setmetatable(g_SessionList, {
-__index = function(t, k)
-	t[k] =
-	{
-		LastSeq 	= 0,
-		MsgCnt 		= 0,
-		GapCnt 		= 0,
-		MsgDrop 	= 0,
-	}
-	return t[k]
-end
-})
-
-
-local GapDetect = function(TS, PortDst, Session, SeqNo, MsgCnt)
-
-	if (Session == nil) then return end
-
-	local Key = PortDst.."_"..Session
-
-	local S = g_SessionList[Key]
-	if (S == nil) then return end
-
-	local GapCnt 	= 0
-	local DropCnt 	= 0
-
-	local dSeq = SeqNo - S.LastSeq
-	if (dSeq ~= 0) and (S.LastSeq ~= 0) then
-
-		S.GapCnt	= S.GapCnt + 1
-		S.MsgDrop	= S.MsgDrop + math.abs( tonumber(dSeq) ) 
-
-		GapCnt 		= 1
-		DropCnt		= math.abs(tonumber(dSeq))
-
-		trace("TS:%s %s Session[%s] Gap detected %5i Found:%i Expect:%i\n", 
-				os.formatDate(TS), 
-				os.formatTS(TS), 
-				Key, 
-				dSeq, 
-				SeqNo, 
-				S.LastSeq)
-	end
-
-	S.LastSeq 	= SeqNo    + MsgCnt
-	S.MsgCnt	= S.MsgCnt + MsgCnt
-
-	return GapCnt, DropCnt
-end
 
 --**************************************************************************************************************************************
 -- main decoder 
@@ -429,10 +411,11 @@ lmain = function()
 	local Type_UDPHeader_t 		= ffi.typeof("UDPHeader_t*")
 	local Type_Payload_t 		= ffi.typeof("u8*")
 
-
 	local TotalMsg				= 0
 	local TotalGap				= 0
 	local TotalDrop				= 0
+
+	local NextStatusTSC			= 0
 
 	while true do 
 
@@ -447,7 +430,7 @@ lmain = function()
 		local PktPayload = ffi_cast(Type_Payload_t, _PktPayload) 
 
 		-- pcap timestamp
-		local TS = PktHeader.Sec * 1000000000ULL + PktHeader.NSec
+		local PCAPTS = PktHeader.Sec * 1000000000ULL + PktHeader.NSec
 
 		-- ethernetheader
 		local Ether 	= ffi.cast("fEther_t*", PktPayload)
@@ -477,7 +460,7 @@ lmain = function()
 				-- decode it
 				local Session, SeqNo, Count, MsgTS = ProtoParser(UDPHeader + 1, Type_Decode)
 
-				local GapCnt, DropCnt = GapDetect(TS, PortDst, Session, SeqNo, Count)
+				local GapCnt, DropCnt = GapDetect(PCAPTS, PortDst, Session, ProtoDesc, SeqNo, Count)
 
 				TotalMsg  = TotalMsg  + Count
 				TotalGap  = TotalGap  + GapCnt
@@ -487,8 +470,12 @@ lmain = function()
 
 		-- top level stats
 		PCAPTotalByte 	= PCAPTotalByte + Sizeof_PCAPPacket_t + PktHeader.LengthCapture
-		PCAPTotalPkt = PCAPTotalPkt + 1
-		if (PCAPTotalPkt % 100000 == 0) then
+		PCAPTotalPkt 	= PCAPTotalPkt + 1
+
+		local TSC = ffi.C.ffi_rdtsc()
+		if (TSC > NextStatusTSC) then
+
+			NextStatusTSC = TSC + 3e9
 
 			local TS  = os.clock_ns()
 			local dT  = tonumber(TS - TSStart) / 1e9
@@ -496,7 +483,34 @@ lmain = function()
 			local bps = tonumber(PCAPTotalByte) * 8.0 / dT
 			local mps = tonumber(TotalMsg) * 8.0 / dT
 
-			trace("%10.3fGB %8.3fM pcap:%6i %10.3fMbps %10.3fMpps %10.3fMmps Gaps:%8i Drops:%8i\n", 	
+			local Lag	= tonumber(TS) - tonumber(PCAPTS)
+
+			-- write progress 
+			local Msg = string.format([[{"module":"market-data-gap","subsystem":"status"        ,"timestamp":%.3f,]], tonumber(os.clock_ns()) / 1e9 ) 
+			Msg = Msg .. string.format([["PCAPTime":"%s_%s","PCAPTS":%i,"Protocol":"%s","TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
+
+					os.formatDate(PCAPTS), 
+					os.formatTS(PCAPTS), 
+					tonumber(PCAPTS)/1e9,
+					ProtoDesc,	
+					PCAPTotalByte,	
+					PCAPTotalPkt,	
+					TotalGap,
+					TotalDrop
+			)
+
+			Msg = Msg .. string.format([["MarketGap_bps":%i,"MarketGap_pps":%i,"MarketGap_mps":%i,"MarketGap_Lag":%i]],
+					bps,
+					pps,
+					mps,
+					Lag / 1e9
+			)
+
+			Msg = Msg .. "}"		
+			Logger(Msg)
+
+
+			io.stderr:write(string.format("%10.3fGB %8.3fM pcap:%6i %10.3fMbps %10.3fMpps %10.3fMmps Gaps:%8i Drops:%8i\n", 	
 																					PCAPTotalByte/1e9, 
 																					tonumber(PCAPTotalPkt)/1e6, 
 																					PktHeader.LengthCapture, 
@@ -504,7 +518,7 @@ lmain = function()
 																					pps/1e6, 
 																					mps/1e6,
 																					TotalGap,
-																					TotalDrop)
+																					TotalDrop))
 		end
 	end
 end

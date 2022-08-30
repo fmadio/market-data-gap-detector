@@ -11,12 +11,13 @@ OBJS =
 OBJS += src/main.o
 
 LOBJS =
-LOBJS += src/lmain.e
-LOBJS += src/StackTracePlus.e
-LOBJS += src/lcpp.e
+LOBJS += src/lmain.o
+LOBJS += src/lgap.o
+LOBJS += src/StackTracePlus.o
+LOBJS += src/lcpp.o
 
 # open markets decoders
-LOBJS += omi/lOpenMarkets.e
+LOBJS += omi/lOpenMarkets.o
 
 EXTLIBS =
 
@@ -57,9 +58,6 @@ all: market_gap
 %.o: %.lua
 	cd luajit; ./luajit -bg  ../$<  ../$@ 
 
-%.e: %.lua
-	cd luajit; ./luajit -bg  ../$<  ../$@ 
-
 %.a: app/%
 	make -C $<
 
@@ -77,6 +75,6 @@ prepare:
 clean:
 	rm -f $(OBJS)
 	rm -f $(LOBJS)
-	rm -f lua/luaobjs.a 
+	rm -f src/luaobjs.a 
 	rm -f market_gap 
 
