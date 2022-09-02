@@ -78,4 +78,5 @@ clean:
 	rm -f $(LOBJS)
 	rm -f src/luaobjs.a 
 	rm -f market_gap 
+	make -C luajit clean	
 
