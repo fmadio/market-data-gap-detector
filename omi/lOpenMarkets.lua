@@ -184,7 +184,7 @@ end
 
 ----------------------------------------------------------------------------------------------------
 -- siac opra
-g_ProtocolList["./omi/siac/siac.Opra.Recipient.Obi.v4.0.h"] = function()
+g_ProtocolList["./omi/siac/Siac.Opra.Recipient.Obi.v4.0.h"] = function()
 
 	-- load header definitions 
 	ffi.cdef('#include "./omi/siac/Siac.Opra.Recipient.Obi.v4.0.h"')
