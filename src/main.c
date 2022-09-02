@@ -28,9 +28,11 @@
 
 #include <immintrin.h>
 
-#include "luajit/lua.h"
-#include "luajit/lauxlib.h"
-#include "luajit/lualib.h"
+#include "lua.h"
+#include "luajit.h"
+#include "lauxlib.h"
+#include "lualib.h"
+#include "lj_obj.h"
 
 #include "src/fTypes.h"
 

@@ -26,16 +26,15 @@ DEF += -g
 DEF += -O3
 DEF += --std=c99 
 DEF += -I.
+DEF += -I./luajit/src/
 
 DEF += -D_LARGEFILE64_SOURCE 
 DEF += -D_GNU_SOURCE 
 DEF += -Wno-unused
 DEF += -Wno-unused-result
-DEF += -march=core-avx2
-DEF += -mavx2
 
 LIBS =
-LIBS += ./luajit/libluajit.a 
+LIBS += ./luajit/src/libluajit.a 
 
 LIBS += -ldl
 LIBS += -lm
@@ -56,15 +55,17 @@ all: market_gap
 	gcc $(DEF) -c -o $@ -g $<
 
 %.o: %.lua
-	cd luajit; ./luajit -bg  ../$<  ../$@ 
+	cd luajit/src/; ./luajit -bg  ../../$<  ../../$@ 
 
 %.a: app/%
 	make -C $<
 
-market_gap: $(LIBS) $(OBJS) $(LOBJS)
+market_gap: $(LIBS) $(OBJS) $(LOBJS) luajit
 	ar rcs src/luaobjs.a $(LOBJS) 
 	gcc -g $(LDFLAG) -o market_gap $(OBJS) $(EXTLIBS) $(LIBS) -Wl,--whole-archive src/luaobjs.a -Wl,--no-whole-archive -Wl,-E 
 
+./luajit/src/libluajit.a:
+	make -C luajit
 
 prepare:
 # before running luajit - make sure its up to date
