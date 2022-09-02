@@ -103,3 +103,103 @@ For system monitoring
 }
 
 ```
+
+## NASDAQ TotalView ITCH March 9th 2020
+
+One of the highest volume days on NASDAQ, 200GB with 1.7Bn packets. Total run time 34minutes for Full day processing A and B Feeds.
+
+
+```
+fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220830_rc1$ sudo stream_cat nasdaq_20220829_1521 | ./market_gap --proto ./omi/nasdaq/Nasdaq.Equities.TotalView.Itch.v5.0.h
+--proto
+   Protocol Name: [./omi/nasdaq/Nasdaq.Equities.TotalView.Itch.v5.0.h]
+FMADIO Market Data Gap Detector
+StartChunkID: 63845
+StartChunk: 63845 Offset: 0 Stride: 1
+StartChunk: 63845
+PCAP Nano
+     0.000GB    0.000M pcap:   112     25.600Mbps      0.025Mpps      0.200Mmps Gaps:       0 Drops:       0
+     0.146GB    1.190M pcap:   112    816.140Mbps      0.831Mpps      7.078Mmps Gaps:       0 Drops:       0
+     0.292GB    2.383M pcap:   112    816.368Mbps      0.832Mpps      7.094Mmps Gaps:       0 Drops:       0
+     0.439GB    3.575M pcap:    95    817.341Mbps      0.832Mpps      7.117Mmps Gaps:       0 Drops:       0
+     0.585GB    4.764M pcap:   112    817.383Mbps      0.832Mpps      7.128Mmps Gaps:       0 Drops:       0
+     0.731GB    5.951M pcap:   112    817.225Mbps      0.831Mpps      7.140Mmps Gaps:       0 Drops:       0
+     0.878GB    7.140M pcap:    95    817.979Mbps      0.831Mpps      7.146Mmps Gaps:       0 Drops:       0
+     1.038GB    8.314M pcap:   116    828.348Mbps      0.829Mpps      7.105Mmps Gaps:       0 Drops:       0
+     1.198GB    9.488M pcap:   126    836.874Mbps      0.828Mpps      7.061Mmps Gaps:       0 Drops:       0
+     1.357GB   10.663M pcap:    95    842.300Mbps      0.827Mpps      7.039Mmps Gaps:       0 Drops:       0
+     1.540GB   11.846M pcap:   302    860.337Mbps      0.827Mpps      7.516Mmps Gaps:       0 Drops:       0
+     1.702GB   13.004M pcap:    99    864.400Mbps      0.826Mpps      7.717Mmps Gaps:       0 Drops:       0
+     1.873GB   14.169M pcap:   112    871.976Mbps      0.825Mpps      7.999Mmps Gaps:       0 Drops:       0
+     2.043GB   15.355M pcap:    95    877.975Mbps      0.825Mpps      8.209Mmps Gaps:       0 Drops:       0
+     2.192GB   16.544M pcap:   112    874.541Mbps      0.825Mpps      8.165Mmps Gaps:       0 Drops:       0
+     2.340GB   17.736M pcap:    95    871.654Mbps      0.826Mpps      8.129Mmps Gaps:       0 Drops:       0
+     2.490GB   18.929M pcap:    99    869.297Mbps      0.826Mpps      8.103Mmps Gaps:       0 Drops:       0
+     2.639GB   20.121M pcap:    95    867.435Mbps      0.827Mpps      8.088Mmps Gaps:       0 Drops:       0
+     2.789GB   21.315M pcap:    95    865.554Mbps      0.827Mpps      8.064Mmps Gaps:       0 Drops:       0
+     2.938GB   22.508M pcap:   112    863.917Mbps      0.827Mpps      8.045Mmps Gaps:       0 Drops:       0
+     3.088GB   23.700M pcap:   111    862.676Mbps      0.828Mpps      8.035Mmps Gaps:       0 Drops:       0
+     3.239GB   24.892M pcap:   112    861.820Mbps      0.828Mpps      8.035Mmps Gaps:       0 Drops:       0
+     3.389GB   26.085M pcap:    99    860.688Mbps      0.828Mpps      8.024Mmps Gaps:       0 Drops:       0
+     3.539GB   27.280M pcap:   112    859.575Mbps      0.828Mpps      8.011Mmps Gaps:       0 Drops:       0
+     3.689GB   28.470M pcap:   112    858.734Mbps      0.828Mpps      8.007Mmps Gaps:       0 Drops:       0
+     3.840GB   29.662M pcap:    95    858.141Mbps      0.829Mpps      8.008Mmps Gaps:       0 Drops:       0
+     3.991GB   30.853M pcap:   170    857.484Mbps      0.829Mpps      8.006Mmps Gaps:       0 Drops:       0
+     4.140GB   32.044M pcap:   112    856.734Mbps      0.829Mpps      8.001Mmps Gaps:       0 Drops:       0
+     4.289GB   33.237M pcap:    95    855.839Mbps      0.829Mpps      7.986Mmps Gaps:       0 Drops:       0
+     4.440GB   34.430M pcap:   112    855.442Mbps      0.829Mpps      7.989Mmps Gaps:       0 Drops:       0
+     4.590GB   35.613M pcap:    95    854.827Mbps      0.829Mpps      7.987Mmps Gaps:       0 Drops:       0
+.
+.
+.
+.
+.
+.
+.
+
+   214.355GB 1668.720M pcap:    95    851.757Mbps      0.829Mpps      8.443Mmps Gaps:       0 Drops:       0
+   214.511GB 1669.901M pcap:   111    851.771Mbps      0.829Mpps      8.443Mmps Gaps:       0 Drops:       0
+   214.667GB 1671.083M pcap:   133    851.788Mbps      0.829Mpps      8.443Mmps Gaps:       0 Drops:       0
+   214.823GB 1672.265M pcap:   126    851.802Mbps      0.829Mpps      8.443Mmps Gaps:       0 Drops:       0
+   214.979GB 1673.445M pcap:    95    851.817Mbps      0.829Mpps      8.443Mmps Gaps:       0 Drops:       0
+   215.135GB 1674.625M pcap:   126    851.830Mbps      0.829Mpps      8.443Mmps Gaps:       0 Drops:       0
+   215.291GB 1675.801M pcap:   112    851.845Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   215.448GB 1676.979M pcap:    95    851.860Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   215.605GB 1678.158M pcap:   132    851.880Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   215.762GB 1679.337M pcap:   112    851.896Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   215.919GB 1680.515M pcap:    95    851.913Mbps      0.829Mpps      8.445Mmps Gaps:       0 Drops:       0
+   216.074GB 1681.697M pcap:   455    851.925Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   216.229GB 1682.877M pcap:   112    851.934Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   216.385GB 1684.056M pcap:   126    851.950Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   216.539GB 1685.237M pcap:    95    851.955Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   216.694GB 1686.416M pcap:   150    851.965Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   216.849GB 1687.597M pcap:    95    851.973Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   217.004GB 1688.778M pcap:    95    851.985Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   217.161GB 1689.956M pcap:   112    852.001Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   217.318GB 1691.134M pcap:   112    852.018Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   217.474GB 1692.311M pcap:    95    852.031Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   217.628GB 1693.489M pcap:   171    852.039Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   217.783GB 1694.668M pcap:   112    852.047Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   217.937GB 1695.844M pcap:   112    852.054Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   218.093GB 1697.021M pcap:   126    852.069Mbps      0.829Mpps      8.444Mmps Gaps:       0 Drops:       0
+   218.247GB 1698.200M pcap:    95    852.074Mbps      0.829Mpps      8.443Mmps Gaps:       0 Drops:       0
+   218.400GB 1699.381M pcap:   289    852.076Mbps      0.829Mpps      8.443Mmps Gaps:       0 Drops:       0
+   218.554GB 1700.558M pcap:   112    852.081Mbps      0.829Mpps      8.443Mmps Gaps:       0 Drops:       0
+   218.707GB 1701.735M pcap:   112    852.081Mbps      0.829Mpps      8.443Mmps Gaps:       0 Drops:       0
+   218.861GB 1702.913M pcap:   112    852.089Mbps      0.829Mpps      8.443Mmps Gaps:       0 Drops:       0
+   219.014GB 1704.093M pcap:   133    852.090Mbps      0.829Mpps      8.442Mmps Gaps:       0 Drops:       0
+   219.205GB 1705.267M pcap:    95    852.239Mbps      0.829Mpps      8.451Mmps Gaps:       0 Drops:       0
+   219.356GB 1706.457M pcap:    95    852.233Mbps      0.829Mpps      8.451Mmps Gaps:       0 Drops:       0
+packet stream end
+20220902_073816 2060.271s : Pkt:1706519522 Byte:320102094 SUCCESS
+Gap Summary (./omi/nasdaq/Nasdaq.Equities.TotalView.Itch.v5.0.h)
+--------------------------------------------------------------------------------------------------------------------------
+    [233. 54. 12.111:udp:26477 000008792B] TotalMsg:1005353584 TotalGap:           TotalDrop:           TotalDup:         0 :
+    [233. 54. 12. 40:udp:25475 000008792D] TotalMsg: 164630384 TotalGap:           TotalDrop:           TotalDup:         0 :
+    [233. 54. 12.101:udp:26400 000008792B] TotalMsg:1005353585 TotalGap:           TotalDrop:           TotalDup:         0 :
+--------------------------------------------------------------------------------------------------------------------------
+Total Time: 2059.372677 sec (34.323 min)
+fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220830_rc1$
+
+```
+
