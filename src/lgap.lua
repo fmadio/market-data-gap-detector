@@ -54,7 +54,7 @@ GapDetect = function(PCAPTS, FlowStr, Session, ProtoDesc, SeqNo, MsgCnt)
 	local DropCnt 	= 0
 
 	local dSeq = SeqNo - S.NextSeq
-	if (dSeq ~= 0) and (S.NextSeq ~= 0) then
+	if (dSeq > 0) and (S.NextSeq ~= 0) then
 
 		GapCnt 		= 1
 		DropCnt		= math.abs(tonumber(dSeq))
@@ -73,8 +73,8 @@ GapDetect = function(PCAPTS, FlowStr, Session, ProtoDesc, SeqNo, MsgCnt)
 				ProtoDesc,	
 				Key, 
 				dSeq, 
-				SeqNo, 
-				S.NextSeq)
+				S.NextSeq,
+				SeqNo)
 
 		AlertMsg = AlertMsg .. "}"		
 

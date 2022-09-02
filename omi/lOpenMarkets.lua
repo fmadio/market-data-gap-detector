@@ -138,6 +138,7 @@ g_ProtocolList["./omi/siac/Siac.Cts.Output.Cta.v1.91.h"] = function()
 
 	-- local accel 
 	local Type_BlockHeaderT = ffi.typeof("BlockHeaderT*")
+	local Type_MessageT 	= ffi.typeof("MessageT*")
 
 	-- constants 
 
@@ -146,11 +147,15 @@ g_ProtocolList["./omi/siac/Siac.Cts.Output.Cta.v1.91.h"] = function()
 	local Parser = function(_Payload, Type)
 	
 		local Block 	= ffi_cast(Type_BlockHeaderT, _Payload)
---[[
-		local Message 	= ffi_cast("MessageT*", Block + 1)
+	
+		--[[
+		local Message 	= ffi_cast(Type_MessageT, Block + 1)
+
+		-- drop line status check message "C" as this may arrive out of order
+		if (Message.MessageHeader.MessageCategory == 0x43) then return nil end
 
 		--trace("%i %10i %i\n", Block.Version, bit.bswap(Block.BlockSequenceNumber), Block.MessagesInBlock)
-		trace("%i %8i %10i MsgCnt:%i retrans:%i FeedInd:%i CSum:%i nanos:%8i Type:%c\n", 
+		trace("Version:%i Size:%8i SeqNo:%10i MsgCnt:%i retrans:%i FeedInd:%i CSum:%i nanos:%8i Type:%c\n", 
 				Block.Version, 
 				Block.BlockSize,
 				bit.bswap(Block.BlockSequenceNumber), 
@@ -161,7 +166,8 @@ g_ProtocolList["./omi/siac/Siac.Cts.Output.Cta.v1.91.h"] = function()
 				bit.bswap(Block.SipBlockTimestamp.Nanoseconds),
 				Message.MessageHeader.MessageCategory	
 				)
-]]
+		]]	
+
 		local Session	= "" 
 		local SeqNo 	= bit.bswap(Block.BlockSequenceNumber)
 		local Count 	= Block.MessagesInBlock 
