@@ -1,6 +1,10 @@
 # FMADIO Open Market Data Gap Detector
+
+The FMADIO Open Market Data Gap Detector leverages the Open Markets Initative to provide simple gap detection for market data protocols.  This will allow users to easily identify gaps in individual market data streams from an exchange and log when a gap in sequence number is present.  When paired with FMADIO best in class packet capture hardware with the ability to capture full line rate at 10Gbps, 25Gbps, 40Gbps and 100Gbps users will be able to analyze packets for supported market data protocols and identify any gaps without impacting the line rate capture processing.
+
 [FMADIO Website](https://fmad.io)
 
+[OMI Github](https://github.com/Open-Markets-Initiative)
 
 ## Performance
 
