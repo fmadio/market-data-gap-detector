@@ -323,15 +323,26 @@ while (i <= #ARGV)do
 		trace("   Protocol Description: [%s]\n", ProtoDesc)
 	end
 	if (c == "-v") then
-		g_IsVerbose = true
+		g_IsVerbose = 1
 		trace("   Verbose Output\n") 
 	end
+	if (c == "-vv") then
+		g_IsVerbose = 2
+		trace("   Verbose Output Very\n") 
+	end
+
+
 
 	i = i + 1
 end
 
-assert(ProtoName ~= nil)
-assert(ProtoPort ~= nil)
+-- check for valid protocol
+if (ProtoName == nil) then
+
+	trace("specify a protocol to use e.g\n")
+	trace("./market_gap --proto ./omi/siac/Siac.Cts.Output.Cta.v1.91.h\n")
+	return
+end
 
 -- default to name
 if (ProtoDesc == nil) then ProtoDesc = ProtoName end
@@ -354,7 +365,7 @@ Logger = function(Msg)
 	os.execute('/usr/local/bin/logger -t fmadio -p '..SyslogFacility..' "'..JSON..'"')
 
 	-- optionaly print to screen
-	if (g_IsVerbose) then
+	if (g_IsVerbose ~= nil) then
 		trace("%s\n", Msg)
 		io.flush(io.stdout)
 		io.flush(io.stderr)
@@ -453,18 +464,38 @@ lmain = function()
 
 			local UDPHeader = ffi_cast(Type_UDPHeader_t, IPHeader + 1) 
 
+			-- dst ip
+			local IPDst = string.format("%3i.%3i.%3i.%3i", IPHeader.Dst[0], IPHeader.Dst[1], IPHeader.Dst[2], IPHeader.Dst[3])
+
 			-- dst port filter
 			local PortDst = ffi.C.ffi_swap16(UDPHeader.PortDst)
-			if (PortDst == ProtoPort) then 
+			if (ProtoPort == nil) or (PortDst == ProtoPort) then 
 
 				-- decode it
-				local Session, SeqNo, Count, MsgTS = ProtoParser(UDPHeader + 1, Type_Decode)
+				local Session, SeqNo, Count, MsgTS, JStr = ProtoParser(UDPHeader + 1, Type_Decode)
+				if (SeqNo ~= nil) then
 
-				local GapCnt, DropCnt = GapDetect(PCAPTS, PortDst, Session, ProtoDesc, SeqNo, Count)
+					-- network flow 
+					local Netflow = IPDst..":udp:"..PortDst
 
-				TotalMsg  = TotalMsg  + Count
-				TotalGap  = TotalGap  + GapCnt
-				TotalDrop = TotalDrop + DropCnt
+					-- check for gaps
+					local GapCnt, DropCnt = GapDetect(PCAPTS, Netflow, Session, ProtoDesc, SeqNo, Count)
+
+					-- update stats
+					TotalMsg  = TotalMsg  + Count
+					TotalGap  = TotalGap  + GapCnt
+					TotalDrop = TotalDrop + DropCnt
+
+					-- verbose output
+					if (g_IsVerbose == 2) then
+
+						if (JStr == nil) then JStr = "" 
+						else JStr = JStr .. ","
+						end
+						local Msg = string.format([[{"timestamp":%.3f,"TS":"%s_%s",%s"SeqNo":%i,"Count":%i,"GapCnt":%i}]], tonumber(PCAPTS) / 1e9, os.formatDate(PCAPTS), os.formatTS(PCAPTS), JStr, SeqNo, Count, GapCnt) 
+						print(Msg)
+					end
+				end
 			end
 		end
 
@@ -472,6 +503,7 @@ lmain = function()
 		PCAPTotalByte 	= PCAPTotalByte + Sizeof_PCAPPacket_t + PktHeader.LengthCapture
 		PCAPTotalPkt 	= PCAPTotalPkt + 1
 
+		-- print status info
 		local TSC = ffi.C.ffi_rdtsc()
 		if (TSC > NextStatusTSC) then
 
@@ -521,4 +553,7 @@ lmain = function()
 																					TotalDrop))
 		end
 	end
+
+	-- dump gap stats
+	GapDump(ProtoName)
 end

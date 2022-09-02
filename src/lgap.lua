@@ -18,10 +18,12 @@ setmetatable(g_SessionList, {
 __index = function(t, k)
 	t[k] =
 	{
+		NextSeq 	= 0,
 		LastSeq 	= 0,
 		MsgCnt 		= 0,
 		GapCnt 		= 0,
-		MsgDrop 	= 0,
+		DupCnt 		= 0,
+		DropCnt 	= 0,
 	}
 	return t[k]
 end
@@ -30,26 +32,35 @@ end
 
 ----------------------------------------------------------------------------------------------------------------------------
 -- basic gap detector for now
-GapDetect = function(PCAPTS, PortDst, Session, ProtoDesc, SeqNo, MsgCnt)
+GapDetect = function(PCAPTS, FlowStr, Session, ProtoDesc, SeqNo, MsgCnt)
 
 	if (Session == nil) then return end
 
-	local Key = "udp_"..PortDst.."_"..Session
+	-- netflow + session string as the unique identifier
+	local Key = FlowStr.." "..Session
 
 	local S = g_SessionList[Key]
 	if (S == nil) then return end
+	
+	-- for duplicate seq no ignore
+	-- e.g. sending of the same message multiple times
+	if (SeqNo == S.LastSeq) then 
+		S.DupCnt = S.DupCnt + 1
+		return  0,0
+	end 
 
+	-- calculate the seq gap
 	local GapCnt 	= 0
-	local DropCnt 	= 1
+	local DropCnt 	= 0
 
-	local dSeq = SeqNo - S.LastSeq
-	if (dSeq ~= 0) and (S.LastSeq ~= 0) then
-
-		S.GapCnt	= S.GapCnt + 1
-		S.MsgDrop	= S.MsgDrop + math.abs( tonumber(dSeq) ) 
+	local dSeq = SeqNo - S.NextSeq
+	if (dSeq ~= 0) and (S.NextSeq ~= 0) then
 
 		GapCnt 		= 1
 		DropCnt		= math.abs(tonumber(dSeq))
+
+		S.GapCnt	= S.GapCnt + 1
+		S.DropCnt	= S.DropCnt + DropCnt 
 
 		-- generate alert
 		local AlertMsg = string.format([[{"module":"market-data-gap","subsystem":"gap"        ,"timestamp":%.3f,]], tonumber(os.clock_ns()) / 1e9 ) 
@@ -63,16 +74,46 @@ GapDetect = function(PCAPTS, PortDst, Session, ProtoDesc, SeqNo, MsgCnt)
 				Key, 
 				dSeq, 
 				SeqNo, 
-				S.LastSeq)
+				S.NextSeq)
 
 		AlertMsg = AlertMsg .. "}"		
 
 		Logger(AlertMsg)
 	end
 
-	S.LastSeq 	= SeqNo    + MsgCnt
+	S.LastSeq 	= SeqNo
+	S.NextSeq 	= SeqNo    + MsgCnt
 	S.MsgCnt	= S.MsgCnt + MsgCnt
 
 	return GapCnt, DropCnt
 end
 
+----------------------------------------------------------------------------------------------------------------------------
+GapDump = function(Desc)
+
+	trace("Gap Summary (%s)\n", Desc);
+	trace("--------------------------------------------------------------------------------------------------------------------------\n");
+
+	for Session,Info in pairs(g_SessionList) do
+
+		local Status = "" 
+
+		-- only print numbers if non zero. makes it easier to read summary
+		local GapCnt = ""
+		if (Info.GapCnt ~= 0) then GapCnt = tostring(Info.GapCnt); Status = "drop" end
+
+		local DropCnt = ""
+		if (Info.DropCnt ~= 0) then DropCnt = tostring(Info.DropCnt); Status = "drop" end
+
+
+		trace("    [%s] TotalMsg:%10i TotalGap:%10s TotalDrop:%10s TotalDup:%10i : %s\n",
+				Session,
+				Info.MsgCnt,
+				GapCnt,
+				DropCnt,
+				Info.DupCnt,
+				Status
+		)
+	end
+	trace("--------------------------------------------------------------------------------------------------------------------------\n");
+end
