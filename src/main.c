@@ -23,7 +23,6 @@
 #include <pthread.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <zstd.h>
 #include <execinfo.h>
 
 #include <immintrin.h>
