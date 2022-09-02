@@ -40,7 +40,7 @@ LIBS += ./luajit/libluajit.a
 LIBS += -ldl
 LIBS += -lm
 LIBS += -lpthread
-LIBS += -lstdc++
+#LIBS += -lstdc++
 
 LDFLAG = 
 LDFLAG += -lm
