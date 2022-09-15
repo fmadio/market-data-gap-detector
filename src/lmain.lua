@@ -358,11 +358,12 @@ require("lOpenMarkets")
 
 local SyslogFacility = "local7.info"
 
+-- NOTE: assumes logger is in PATH
 Logger = function(Msg)
 
 	-- write to syslog
 	local JSON 	= Msg:gsub("\"", "\\\"")
-	os.execute('/usr/local/bin/logger -t fmadio -p '..SyslogFacility..' "'..JSON..'"')
+	os.execute('logger -t fmadio -p '..SyslogFacility..' "'..JSON..'"')
 
 	-- optionaly print to screen
 	if (g_IsVerbose ~= nil) then
