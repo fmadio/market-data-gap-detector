@@ -399,6 +399,10 @@ lmain = function()
 
 	local pcap 			= io.stdin
 	local _PCAPHeader 	= pcap:read(ffi.sizeof("PCAPHeader_t"))
+	if (_PCAPHeader == nil) then
+		trace("*ERROR* Failed to read from STDIN\n")
+		return
+	end
 	local PCAPHeader 	= ffi.cast("PCAPHeader_t*", _PCAPHeader)
 
 	-- work out timescale 
