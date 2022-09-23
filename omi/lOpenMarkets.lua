@@ -273,6 +273,7 @@ g_ProtocolList["./omi/cme/Cme.Futures.Mdp3.Sbe.v1.12.h"] = function()
 	local Type_MessageT 	= ffi.typeof("MessageT*")
 	local Sizeof_MessageT 	= ffi.typeof("MessageT")
 
+
 	-- constants 
 
 	-- actual parser to return id, seqno and msg cnt
@@ -290,16 +291,31 @@ g_ProtocolList["./omi/cme/Cme.Futures.Mdp3.Sbe.v1.12.h"] = function()
 		local TS		= tonumber(Packet.BinaryPacketHeader.SendingTime)
 
 		-- iterate thru each message
+		--[[
 		local Offset	= Sizeof_PacketT
 		while (Length - Offset > Sizeof_MessageT) do
 
 			local Message	 = ffi_cast(Type_MessageT, Payload + Offset) 
 
 			local TemplateID = Message.MessageHeader.TemplateId
-			--print(string.format("%8i %8i : %8i %8i id:%i", SeqNo, Message.MessageSize, Offset, Length, TemplateID));
+			--print(string.format("%12i %8i : %8i %8i id:%i", SeqNo, Message.MessageSize, Offset, Length, TemplateID));
+
+			if (TemplateID == 52) then
+
+				local Snapshot 	= ffi.cast("SnapshotFullRefreshT*", Message + 1) 
+				print(string.format("        refresh:%12i %12i %8i symbol:%i", Snapshot.LastMsgSeqNumProcessed, Snapshot.RptSeq, Snapshot.TotNumReports, Snapshot.SecurityId))
+
+				Session	= string.format("%08i", Snapshot.SecurityId)
+			end
+
+			if (TemplateID == 53) then
+				local Snapshot = ffi.cast("SnapshotFullRefreshOrderBookT*", Message + 1) 
+				print(string.format("     update book %i security:%i %i/%i", Snapshot.LastMsgSeqNumProcessed, Snapshot.SecurityId, Snapshot.CurrentChunk, Snapshot.NoChunks))
+			end
 
 			Offset = Offset + Message.MessageSize + Sizeof_MessageT
 		end
+		]]
  
 		return Session, SeqNo, Count, TS
 	end
