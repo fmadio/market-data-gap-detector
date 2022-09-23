@@ -203,3 +203,53 @@ fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220830_rc1$
 
 ```
 
+
+## EUREX EOBI 
+
+Both Incremental and Snapshot feeds using EOBI T7 latest
+
+Incremental feed
+
+
+```
+fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220830_rc1$ cat xeur_59001.pcap   | ./market_gap  --proto ./omi/eurex/Eurex.Derivatives.Eobi.T7.v9.1.h
+Setup
+./market_gap
+--proto
+   Protocol Name: [./omi/eurex/Eurex.Derivatives.Eobi.T7.v9.1.h]
+FMADIO Market Data Gap Detector
+PCAP Nano
+     0.000GB    0.000M pcap:    90     36.870Mbps      0.043Mpps      0.348Mmps Gaps:       0 Drops:       0
+     0.154GB    1.010M pcap:   154    861.698Mbps      0.705Mpps      5.642Mmps Gaps:       0 Drops:       0
+     0.322GB    2.092M pcap:   154    898.701Mbps      0.730Mpps      5.844Mmps Gaps:       0 Drops:       0
+     0.477GB    3.093M pcap:   154    887.785Mbps      0.720Mpps      5.761Mmps Gaps:       0 Drops:       0
+Gap Summary (./omi/eurex/Eurex.Derivatives.Eobi.T7.v9.1.h)
+--------------------------------------------------------------------------------------------------------------------------
+    [224.  0.114. 33:udp:59001 ] TotalMsg:   3372644 TotalGap:           TotalDrop:           TotalDup:         0 :
+--------------------------------------------------------------------------------------------------------------------------
+Total Time: 4.731946 sec (0.079 min)
+fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220830_rc1$
+
+```
+
+Snapshot feed:
+
+
+```
+fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220830_rc1$ cat xeur_59000.pcap   | ./market_gap  --proto ./omi/eurex/Eurex.Derivatives.Eobi.T7.v9.1.h
+Setup
+./market_gap
+--proto
+   Protocol Name: [./omi/eurex/Eurex.Derivatives.Eobi.T7.v9.1.h]
+FMADIO Market Data Gap Detector
+PCAP Nano
+     0.000GB    0.000M pcap:  1370    462.000Mbps      0.042Mpps      0.333Mmps Gaps:       0 Drops:       0
+Gap Summary (./omi/eurex/Eurex.Derivatives.Eobi.T7.v9.1.h)
+--------------------------------------------------------------------------------------------------------------------------
+    [224.  0.114. 32:udp:59000 ] TotalMsg:    300000 TotalGap:           TotalDrop:           TotalDup:         0 :
+--------------------------------------------------------------------------------------------------------------------------
+Total Time: 0.886274 sec (0.015 min)
+fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220830_rc1$
+```
+
+
