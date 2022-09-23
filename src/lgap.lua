@@ -24,6 +24,7 @@ __index = function(t, k)
 		GapCnt 		= 0,
 		DupCnt 		= 0,
 		DropCnt 	= 0,
+		ResetCnt 	= 0,
 	}
 	return t[k]
 end
@@ -54,6 +55,7 @@ GapDetect = function(PCAPTS, FlowStr, Session, ProtoDesc, SeqNo, MsgCnt)
 	local DropCnt 	= 0
 
 	local dSeq = SeqNo - S.NextSeq
+
 	if (dSeq > 0) and (S.NextSeq ~= 0) then
 
 		GapCnt 		= 1
@@ -77,8 +79,13 @@ GapDetect = function(PCAPTS, FlowStr, Session, ProtoDesc, SeqNo, MsgCnt)
 				SeqNo)
 
 		AlertMsg = AlertMsg .. "}"		
-
 		Logger(AlertMsg)
+
+	-- count resets
+	elseif (dSeq < 0) then
+
+		S.ResetCnt	= S.ResetCnt + 1
+	else
 	end
 
 	S.LastSeq 	= SeqNo
@@ -106,12 +113,13 @@ GapDump = function(Desc)
 		if (Info.DropCnt ~= 0) then DropCnt = tostring(Info.DropCnt); Status = "drop" end
 
 
-		trace("    [%s] TotalMsg:%10i TotalGap:%10s TotalDrop:%10s TotalDup:%10i : %s\n",
+		trace("    [%s] TotalMsg:%10i TotalGap:%10s TotalDrop:%10s TotalDup:%10i TotalReset:%8i : %s\n",
 				Session,
 				Info.MsgCnt,
 				GapCnt,
 				DropCnt,
 				Info.DupCnt,
+				Info.ResetCnt,
 				Status
 		)
 	end
