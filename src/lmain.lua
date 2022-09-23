@@ -467,17 +467,20 @@ lmain = function()
 		local DecodePayload = nil
 		if (IPHeader.Proto == 0x11) then
 
-			local UDPHeader = ffi_cast(Type_UDPHeader_t, IPHeader + 1) 
+			-- move to UDP header
+			local UDPHeader = ffi_cast("UDPHeader_t*", ffi.cast("u8*", IPHeader) + IPHeader.HLen*4) 
 
 			-- dst ip
 			local IPDst = string.format("%3i.%3i.%3i.%3i", IPHeader.Dst[0], IPHeader.Dst[1], IPHeader.Dst[2], IPHeader.Dst[3])
 
 			-- dst port filter
-			local PortDst = ffi.C.ffi_swap16(UDPHeader.PortDst)
+			local PortDst 	 	= ffi.C.ffi_swap16(UDPHeader.PortDst)
+			local PayloadLength = ffi.C.ffi_swap16(UDPHeader.Length)
+
 			if (ProtoPort == nil) or (PortDst == ProtoPort) then 
 
 				-- decode it
-				local Session, SeqNo, Count, MsgTS, JStr = ProtoParser(UDPHeader + 1, Type_Decode)
+				local Session, SeqNo, Count, MsgTS, JStr = ProtoParser(UDPHeader + 1, Type_Decode, PayloadLength)
 				if (SeqNo ~= nil) then
 
 					-- network flow 
