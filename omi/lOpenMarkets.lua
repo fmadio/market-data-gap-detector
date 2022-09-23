@@ -253,4 +253,61 @@ g_ProtocolList["./omi/eurex/Eurex.Derivatives.Eobi.T7.v9.1.h"] = function()
 	return Parser,Decode
 end
 
+
+----------------------------------------------------------------------------------------------------
+-- CME MDP
+--
+-- https://www.cmegroup.com/confluence/display/EPICSANDBOX/MDP+3.0+-+SBE+Technical+Headers
+--
+g_ProtocolList["./omi/cme/Cme.Futures.Mdp3.Sbe.v1.12.h"] = function()
+
+	-- load header definitions 
+	ffi.cdef('#include "./omi/cme/Cme.Futures.Mdp3.Sbe.v1.12.h"')
+
+	-- local accel 
+	local Type_u8 			= ffi.typeof("u8*")
+
+	local Type_PacketT 		= ffi.typeof("PacketT*")
+	local Sizeof_PacketT 	= ffi.sizeof("PacketT")
+
+	local Type_MessageT 	= ffi.typeof("MessageT*")
+	local Sizeof_MessageT 	= ffi.typeof("MessageT")
+
+	-- constants 
+
+	-- actual parser to return id, seqno and msg cnt
+	local Parser = function(_Payload, Type, Length)
+
+		local Payload	= ffi_cast(Type_u8, _Payload)
+
+		local Packet 	= ffi_cast(Type_PacketT, _Payload)
+
+		--print(string.format("%8i %i", Packet.BinaryPacketHeader.MessageSequenceNumber, tonumber(Packet.BinaryPacketHeader.SendingTime)))
+
+		local Session	= ""
+		local SeqNo		= Packet.BinaryPacketHeader.MessageSequenceNumber
+		local Count		= 1 
+		local TS		= tonumber(Packet.BinaryPacketHeader.SendingTime)
+
+		-- iterate thru each message
+		local Offset	= Sizeof_PacketT
+		while (Length - Offset > Sizeof_MessageT) do
+
+			local Message	 = ffi_cast(Type_MessageT, Payload + Offset) 
+
+			local TemplateID = Message.MessageHeader.TemplateId
+			--print(string.format("%8i %8i : %8i %8i id:%i", SeqNo, Message.MessageSize, Offset, Length, TemplateID));
+
+			Offset = Offset + Message.MessageSize + Sizeof_MessageT
+		end
+ 
+		return Session, SeqNo, Count, TS
+	end
+
+	local Decode = function(_Payload, Type)
+	end
+
+	return Parser,Decode
+end
+
 ----------------------------------------------------------------------------------------------------
