@@ -219,3 +219,38 @@ g_ProtocolList["./omi/siac/Siac.Opra.Recipient.Obi.v4.0.h"] = function()
 end
 
 ----------------------------------------------------------------------------------------------------
+-- Eurex Derivaties 
+g_ProtocolList["./omi/eurex/Eurex.Derivatives.Eobi.T7.v9.1.h"] = function()
+
+	-- load header definitions 
+	ffi.cdef('#include "./omi/eurex/Eurex.Derivatives.Eobi.T7.v9.1.h"')
+
+	-- local accel 
+	local Type_PacketT = ffi.typeof("PacketT*")
+
+	-- constants 
+
+	-- actual parser to return id, seqno and msg cnt
+	local Parser = function(_Payload, Type)
+
+		local Packet 	= ffi_cast(Type_PacketT, _Payload)
+		local Header 	= Packet.PacketHeader 
+		local Info 		= Header.PacketInfo
+
+		local Session	= ""
+		local SeqNo		= Header.ApplSeqNum
+		local Count		= 1 
+		local TS		= tonumber(Header.TransactTime)
+
+		--print(string.format("seq: %i segment:%i part:%i TS:%i\n", Header.ApplSeqNum, Header.MarketSegmentId, Header.PartitionId, TS)) 
+ 
+		return Session, SeqNo, Count, TS
+	end
+
+	local Decode = function(_Payload, Type)
+	end
+
+	return Parser,Decode
+end
+
+----------------------------------------------------------------------------------------------------
