@@ -253,3 +253,32 @@ fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220830_rc1$
 ```
 
 
+## CME MDP3 
+
+MDP3 Sequence number checks
+
+
+```
+fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220830_rc1$ cat cme_mdp_snapshot.pcap    | ./market_gap  --proto ./omi/cme/Cme.Futures.Mdp3.Sbe.v1.9.h
+Setup
+./market_gap
+--proto
+   Protocol Name: [./omi/cme/Cme.Futures.Mdp3.Sbe.v1.9.h]
+FMADIO Market Data Gap Detector
+PCAP Nano
+     0.000GB    0.000M pcap:   412    126.815Mbps      0.037Mpps      0.296Mmps Gaps:       0 Drops:       0
+     0.120GB    0.082M pcap:  1280    668.593Mbps      0.057Mpps      0.460Mmps Gaps:     504 Drops:   82555
+Gap Summary (./omi/cme/Cme.Futures.Mdp3.Sbe.v1.12.h)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+    [233. 72. 75.  1:udp:23310 ] TotalMsg:    100000 TotalGap:           TotalDrop:           TotalDup:         0 TotalReset:     593 :
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Total Time: 0.478509 sec (0.008 min)
+
+
+Total Time: 1.726253 sec (0.029 min)
+fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220830_rc1$
+```
+
+
+
+
