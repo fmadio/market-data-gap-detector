@@ -105,19 +105,16 @@ GapDump = function(Desc)
 
 		local Status = "" 
 
-		-- only print numbers if non zero. makes it easier to read summary
-		local GapCnt = ""
-		if (Info.GapCnt ~= 0) then GapCnt = tostring(Info.GapCnt); Status = "drop" end
-
-		local DropCnt = ""
-		if (Info.DropCnt ~= 0) then DropCnt = tostring(Info.DropCnt); Status = "drop" end
+		-- flag status for any drops 
+		if (Info.GapCnt 	~= 0) then Status = "drop" end
+		if (Info.DropCnt 	~= 0) then Status = "drop" end
 
 
 		trace("    [%s] TotalMsg:%10i TotalGap:%10s TotalDrop:%10s TotalDup:%10i TotalReset:%8i : %s\n",
 				Session,
 				Info.MsgCnt,
-				GapCnt,
-				DropCnt,
+				Info.GapCnt,
+				Info.DropCnt,
 				Info.DupCnt,
 				Info.ResetCnt,
 				Status
