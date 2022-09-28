@@ -330,8 +330,11 @@ while (i <= #ARGV)do
 		g_IsVerbose = 2
 		trace("   Verbose Output Very\n") 
 	end
-
-
+	if (c == "--uid") then
+		local UID = ARGV[i+1];	
+		trace("   UID [%s]\n", UID) 
+		i = i + 1
+	end
 
 	i = i + 1
 end
@@ -484,7 +487,7 @@ lmain = function()
 				if (SeqNo ~= nil) then
 
 					-- network flow 
-					local Netflow = IPDst..":udp:"..PortDst
+					local Netflow = string.format("%s:udp:%6i", IPDst, PortDst)
 
 					-- check for gaps
 					local GapCnt, DropCnt = GapDetect(PCAPTS, Netflow, Session, ProtoDesc, SeqNo, Count)
