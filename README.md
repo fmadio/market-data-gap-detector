@@ -50,14 +50,14 @@ lz4 -d -c /mnt/store1/cache/omi/20170926_OPERA_multicast_feed.pcap.lz4  | ./mark
 CQS gap Detector 
 
 ```
-lz4 -d -c /mnt/store1/cache/omi/20170926_OPERA_multicast_feed.pcap.lz4  |  ./market_gap --proto ./omi/siac/Siac.cqs.Recipient.Obi.v4.0.h --port 16117 --desc "CQS Feed A"
+lz4 -d -c /mnt/store1/cache/omi/20170926_CQS_multicast_feed.pcap.lz4  |  ./market_gap --proto ./omi/siac/Siac.cqs.Recipient.Obi.v4.0.h --desc "CQS Feed A"
 
 ```
 
 CTS gap Detector 
 
 ```
-lz4 -d -c /mnt/store1/cache/omi/20170926_OPERA_multicast_feed.pcap.lz4  |  ./market_gap --proto ./omi/siac/Siac.cts.Recipient.Obi.v4.0.h --port 16117 --desc "CTS Feed A"
+lz4 -d -c /mnt/store1/cache/omi/20170926_CTS_multicast_feed.pcap.lz4  |  ./market_gap --proto ./omi/siac/Siac.cts.Recipient.Obi.v4.0.h --desc "CTS Feed A"
 
 ```
 
