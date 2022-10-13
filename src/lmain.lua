@@ -298,13 +298,44 @@ os.clock_ns = function()
 	return ffi.C.ffi_clock_ns()
 end
 
+-----------------------------------------------------------------------------------------------------------------------------------
+
+help = function()
+
+	trace("FMADIO Market Data Gap Detector\n")
+	trace("\n")
+	trace("Required:\n")
+	trace("  --proto <path to protocol>            : (required) specifies the protocol to code all incomming pcap data with\n")
+	trace("\n")
+	trace("Optional:\n")
+	trace("  --port <port number>                  : filter a specific port number\n") 
+	trace("  --desc \"<text description>\"         : provide a text descriptiong with gap JSON events\n") 
+	trace("  --uid <uid number>                    : allows uniquie id to be associated with the process\n") 
+	trace("  --timestamp <mode>                    : specify what value to put into the JSON timestamp field\n") 
+	trace("                                        : \"wall\" - (default) use wall time\n") 
+	trace("                                        : \"pcap\" -           timestamp from the pcap\n") 
+	trace("  -v                                    : verbose output\n") 
+	trace("  -vv                                   : very verbose  output\n") 
+	trace("\n")
+	trace("Example Usage:\n")
+	trace("  checks for market data gaps using CME MDP3 format\n")
+	trace("\n")
+	trace("  cat cme.pcap | ./market_gap  --proto ./omi/cme/Cme.Futures.Mdp3.Sbe.v1.12.h --desc \"CME MD Feed AB\"\n") 
+	trace("\n")
+
+	os.exit(-1)
+
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 local ProtoName = nil
 local ProtoPort = nil
 local ProtoDesc = nil
 
 local s_TimestampMode = "wall"					-- default use walltime for the timestamp field
 
-local i = 1
+local i = 2
 while (i <= #ARGV)do
 
 	local c = ARGV[i]
@@ -313,34 +344,34 @@ while (i <= #ARGV)do
 		ProtoName = ARGV[i+1]
 		i = i + 1
 		trace("   Protocol Name: [%s]\n", ProtoName)
-	end
-	if (c == "--port") then
+
+	elseif (c == "--port") then
 		ProtoPort = tonumber(ARGV[i+1])
 		i = i + 1
 		trace("   Protocol Port: %i\n", ProtoPort)
-	end
-	if (c == "--desc") then
+
+	elseif (c == "--desc") then
 		ProtoDesc = (ARGV[i+1])
 		i = i + 1
 		trace("   Protocol Description: [%s]\n", ProtoDesc)
-	end
-	if (c == "-v") then
+
+	elseif (c == "-v") then
 		g_IsVerbose = 1
 		trace("   Verbose Output\n") 
-	end
-	if (c == "-vv") then
+	elseif (c == "-vv") then
 		g_IsVerbose = 2
 		trace("   Verbose Output Very\n") 
-	end
-	if (c == "--uid") then
+	elseif (c == "--uid") then
 		local UID = ARGV[i+1];	
 		trace("   UID [%s]\n", UID) 
 		i = i + 1
-	end
-	if (c == "--timestamp") then
+	elseif (c == "--timestamp") then
 		s_TimestampMode = ARGV[i+1];	
 		trace("   TimestampMode [%s]\n", s_TimestampMode) 
 		i = i + 1
+	else
+		trace("Unkown Arg [%s]\n", ARGV[i])
+		help()
 	end
 
 
@@ -348,12 +379,7 @@ while (i <= #ARGV)do
 end
 
 -- check for valid protocol
-if (ProtoName == nil) then
-
-	trace("specify a protocol to use e.g\n")
-	trace("./market_gap --proto ./omi/siac/Siac.Cts.Output.Cta.v1.91.h\n")
-	return
-end
+if (ProtoName == nil) then help() end
 
 -- default to name
 if (ProtoDesc == nil) then ProtoDesc = ProtoName end
