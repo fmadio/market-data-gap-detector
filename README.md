@@ -21,8 +21,9 @@ Required:
 
 Optional:
   --port <port number>                  : filter a specific port number
-  --desc "<text description>"         : provide a text descriptiong with gap JSON events
+  --desc "<text description>"           : provide a text descriptiong with gap JSON events
   --uid <uid number>                    : allows uniquie id to be associated with the process
+  --cpu <cpu number>                    : pin to a specific CPU number
   --timestamp <mode>                    : specify what value to put into the JSON timestamp field
                                         : "wall" - (default) use wall time
                                         : "pcap" -           timestamp from the pcap
