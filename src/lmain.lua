@@ -530,7 +530,7 @@ lmain = function()
 
 			-- write progress 
 			local Msg = string.format([[{"module":"market-data-gap","subsystem":"status"        ,"timestamp":%.3f,]], tonumber(os.clock_ns()) / 1e9 ) 
-			Msg = Msg .. string.format([["PCAPTime":"%s_%s","PCAPTS":%i,"Protocol":"%s","TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
+			Msg = Msg .. string.format([["PCAPTime":"%s_%s","PCAPtimestamp":%i,"Protocol":"%s","TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
 
 					os.formatDate(PCAPTS), 
 					os.formatTS(PCAPTS), 
