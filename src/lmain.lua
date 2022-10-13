@@ -311,6 +311,7 @@ help = function()
 	trace("  --port <port number>                  : filter a specific port number\n") 
 	trace("  --desc \"<text description>\"         : provide a text descriptiong with gap JSON events\n") 
 	trace("  --uid <uid number>                    : allows uniquie id to be associated with the process\n") 
+	trace("  --cpu <cpu number>                    : pin to a specific CPU number\n") 
 	trace("  --timestamp <mode>                    : specify what value to put into the JSON timestamp field\n") 
 	trace("                                        : \"wall\" - (default) use wall time\n") 
 	trace("                                        : \"pcap\" -           timestamp from the pcap\n") 
@@ -333,7 +334,8 @@ local ProtoName = nil
 local ProtoPort = nil
 local ProtoDesc = nil
 
-local s_TimestampMode = "wall"					-- default use walltime for the timestamp field
+local s_TimestampMode 	= "wall"				-- default use walltime for the timestamp field
+local s_CPUPin			= nil					-- optionally pin to a specific CPU
 
 local i = 2
 while (i <= #ARGV)do
@@ -358,16 +360,24 @@ while (i <= #ARGV)do
 	elseif (c == "-v") then
 		g_IsVerbose = 1
 		trace("   Verbose Output\n") 
+
 	elseif (c == "-vv") then
 		g_IsVerbose = 2
 		trace("   Verbose Output Very\n") 
+
 	elseif (c == "--uid") then
 		local UID = ARGV[i+1];	
 		trace("   UID [%s]\n", UID) 
 		i = i + 1
+
 	elseif (c == "--timestamp") then
 		s_TimestampMode = ARGV[i+1];	
 		trace("   TimestampMode [%s]\n", s_TimestampMode) 
+		i = i + 1
+
+	elseif (c == "--cpu") then
+		s_CPUPin = tonumber(ARGV[i+1]);	
+		trace("   CPU Pin [%s]\n", tostring(s_CPUPin) ) 
 		i = i + 1
 	else
 		trace("Unkown Arg [%s]\n", ARGV[i])
@@ -455,6 +465,11 @@ lmain = function()
 
 	trace("FMADIO Market Data Gap Detector\n")
 
+	-- optionaly pin a to a CPU
+	if (s_CPUPin ~= nil) then
+		trace("CPU Affinity %i\n", s_CPUPin) 
+		os.cpu_affinity(s_CPUPin)
+	end
 
 	local PCAPTotalByte	= 0
 	local PCAPTotalPkt	= 0

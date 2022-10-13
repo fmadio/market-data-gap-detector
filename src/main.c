@@ -342,14 +342,12 @@ static int lcpu_affinity(lua_State* L)
 {
 	// input is u64*
 	u32 cpu = lua_tonumber(L, -1);
-	if (cpu > 128) cpu = 0;
+	if (cpu > 512) cpu = 0;
 
 	cpu_set_t	MainCPUS;
 	CPU_ZERO(&MainCPUS);
 	CPU_SET(cpu, &MainCPUS);
 	pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &MainCPUS);
-
-	printf("set cpu: %i\n", cpu);
 	
 	return 1;
 }
