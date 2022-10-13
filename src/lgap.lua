@@ -65,8 +65,7 @@ GapDetect = function(PCAPTS, FlowStr, Session, ProtoDesc, SeqNo, MsgCnt)
 		S.DropCnt	= S.DropCnt + DropCnt 
 
 		-- generate alert
-		local AlertMsg = string.format([[{"module":"market-data-gap","subsystem":"gap"        ,"timestamp":%.3f,]], tonumber(os.clock_ns()) / 1e9 ) 
-
+		local AlertMsg = SyslogHeader("gap", PCAPTS) 
 		AlertMsg = AlertMsg .. string.format([["PCAPTime":"%s_%s","PCAPtimestamp":%i,"Protocol":"%s","Session":"%s","GapSize":%i,"SeqExpect":%i,"SeqFound":%i]],
 
 				os.formatDate(PCAPTS), 

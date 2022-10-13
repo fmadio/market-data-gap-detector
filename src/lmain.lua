@@ -302,6 +302,8 @@ local ProtoName = nil
 local ProtoPort = nil
 local ProtoDesc = nil
 
+local s_TimestampMode = "wall"					-- default use walltime for the timestamp field
+
 local i = 1
 while (i <= #ARGV)do
 
@@ -335,6 +337,12 @@ while (i <= #ARGV)do
 		trace("   UID [%s]\n", UID) 
 		i = i + 1
 	end
+	if (c == "--timestamp") then
+		s_TimestampMode = ARGV[i+1];	
+		trace("   TimestampMode [%s]\n", s_TimestampMode) 
+		i = i + 1
+	end
+
 
 	i = i + 1
 end
@@ -376,6 +384,29 @@ Logger = function(Msg)
 	end
 end
 
+----------------------------------------------------------------------------------------------------------------------------
+-- header for all syslog outputs
+SyslogHeader = function(Subsystem, PCAPTS)
+
+	local TS = 0 
+
+	-- use wall time 
+	if (s_TimestampMode == "wall") then
+		TS = os.clock_ns()
+	end
+
+	-- optinally use the pcap time for the timestamp field
+	if (s_TimestampMode == "pcap") then
+		TS = PCAPTS or 0
+	end
+
+	local Msg  = string.format([[{"module":"market-data-gap","subsystem":"%s"        ,"timestamp":%.3f,]], 
+			Subsystem,
+			tonumber(TS) / 1e9
+	) 
+
+	return Msg
+end
 
 ----------------------------------------------------------------------------------------------------------------------------
 
@@ -388,6 +419,8 @@ end
 
 -- get parser
 local ProtoParser = DecodeProto()
+
+
 
 --**************************************************************************************************************************************
 -- main decoder 
@@ -529,7 +562,7 @@ lmain = function()
 			local Lag	= tonumber(TS) - tonumber(PCAPTS)
 
 			-- write progress 
-			local Msg = string.format([[{"module":"market-data-gap","subsystem":"status"        ,"timestamp":%.3f,]], tonumber(os.clock_ns()) / 1e9 ) 
+			local Msg = SyslogHeader("status", PCAPTS) 
 			Msg = Msg .. string.format([["PCAPTime":"%s_%s","PCAPtimestamp":%i,"Protocol":"%s","TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
 
 					os.formatDate(PCAPTS), 
@@ -542,7 +575,7 @@ lmain = function()
 					TotalDrop
 			)
 
-			Msg = Msg .. string.format([["MarketGap_bps":%i,"MarketGap_pps":%i,"MarketGap_mps":%i,"MarketGap_Lag":%i]],
+			Msg = Msg .. string.format([["MarketGap_bps":%i,"MarketGap_pps":%i,"MarketGap_mps":%i,"MarketGap_Lag":%.6f]],
 					bps,
 					pps,
 					mps,
@@ -551,7 +584,6 @@ lmain = function()
 
 			Msg = Msg .. "}"		
 			Logger(Msg)
-
 
 			io.stderr:write(string.format("%10.3fGB %8.3fM pcap:%6i %10.3fMbps %10.3fMpps %10.3fMmps Gaps:%8i Drops:%8i\n", 	
 																					PCAPTotalByte/1e9, 
