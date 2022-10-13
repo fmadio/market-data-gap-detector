@@ -11,6 +11,32 @@ The FMADIO Open Market Data Gap Detector leverages the Open Markets Initative to
 Baseline system parses a PCAP at around 1Gbps with a packet rate of about 1Mpps
 
 
+## Options
+
+```
+FMADIO Market Data Gap Detector
+
+Required:
+  --proto <path to protocol>            : (required) specifies the protocol to code all incomming pcap data with
+
+Optional:
+  --port <port number>                  : filter a specific port number
+  --desc "<text description>"         : provide a text descriptiong with gap JSON events
+  --uid <uid number>                    : allows uniquie id to be associated with the process
+  --timestamp <mode>                    : specify what value to put into the JSON timestamp field
+                                        : "wall" - (default) use wall time
+                                        : "pcap" -           timestamp from the pcap
+  -v                                    : verbose output
+  -vv                                   : very verbose  output
+
+Example Usage:
+  checks for market data gaps using CME MDP3 format
+
+  cat cme.pcap | ./market_gap  --proto ./omi/cme/Cme.Futures.Mdp3.Sbe.v1.12.h --desc "CME MD Feed AB"
+
+fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220924_rc1$
+```
+
 
 ## Example Usage:
 
