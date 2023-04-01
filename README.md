@@ -25,6 +25,7 @@ Optional:
   --uid <uid number>                    : allows uniquie id to be associated with the process
   --cpu <cpu number>                    : pin to a specific CPU number
   --timestamp <mode>                    : specify what value to put into the JSON timestamp field
+  --location <desc>                     : add a location field into the syslog message output
                                         : "wall" - (default) use wall time
                                         : "pcap" -           timestamp from the pcap
   -v                                    : verbose output
@@ -307,5 +308,33 @@ fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220830_rc1$
 ```
 
 
+## LSE MITCH 11.9 
 
+LSE MITCH Market data
 
+```
+fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220924_rc1$ sudo stream_cat --decap lse_20230401_1436 | ./market_gap --port 60400 --proto ./omi/lse/Lse.Millennium.Level2.Mitch.v11.9.h  --location "LSE-docklands-2"
+Setup
+--port
+   Protocol Port: 60400
+--proto
+   Protocol Name: [./omi/lse/Lse.Millennium.Level2.Mitch.v11.9.h]
+--location
+   Location [LSE-colo]
+FMADIO Market Data Gap Detector
+PCAP Nano
+     0.000GB    0.000M pcap:   124     41.481Mbps      0.037Mpps      0.296Mmps Gaps:       0 Drops:       0
+packet stream end
+20230401_154407 1.089s : Pkt:1000 Byte:139748 SUCCESS
+Gap Summary (./omi/lse/Lse.Millennium.Level2.Mitch.v11.9.h)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+    [224.  4. 10.237:udp: 60400 H] TotalMsg:         3 TotalGap:         0 TotalDrop:         0 TotalDup:         3 TotalReset:       0 :
+    [224.  4. 10.175:udp: 60400 S] TotalMsg:        11 TotalGap:         0 TotalDrop:         0 TotalDup:         2 TotalReset:       0 :
+    [224.  4. 10.241:udp: 60400 L] TotalMsg:       104 TotalGap:         0 TotalDrop:         0 TotalDup:        50 TotalReset:      27 :
+    [224.  4. 10.242:udp: 60400 M] TotalMsg:        86 TotalGap:         0 TotalDrop:         0 TotalDup:        40 TotalReset:      23 :
+    [224.  4. 10.238:udp: 60400 I] TotalMsg:       100 TotalGap:         0 TotalDrop:         0 TotalDup:        40 TotalReset:      30 :
+    [224.  4. 10.239:udp: 60400 J] TotalMsg:       109 TotalGap:         0 TotalDrop:         0 TotalDup:        71 TotalReset:      19 :
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Total Time: 0.192385 sec (0.003 min)
+fmadio@fmadio100v2-228U:/mnt/store0/git/market_gap_20220924_rc1$
+```
