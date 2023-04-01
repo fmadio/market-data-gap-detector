@@ -336,6 +336,7 @@ local ProtoDesc = nil
 
 local s_TimestampMode 	= "wall"				-- default use walltime for the timestamp field
 local s_CPUPin			= nil					-- optionally pin to a specific CPU
+local s_Location		= "" 					-- location field in the json
 
 local i = 2
 while (i <= #ARGV)do
@@ -368,6 +369,11 @@ while (i <= #ARGV)do
 	elseif (c == "--uid") then
 		local UID = ARGV[i+1];	
 		trace("   UID [%s]\n", UID) 
+		i = i + 1
+
+	elseif (c == "--location") then
+		local s_Location = ARGV[i+1];	
+		trace("   Location [%s]\n", s_Location) 
 		i = i + 1
 
 	elseif (c == "--timestamp") then
@@ -436,11 +442,11 @@ SyslogHeader = function(Subsystem, PCAPTS)
 		TS = PCAPTS or 0
 	end
 
-	local Msg  = string.format([[{"module":"market-data-gap","subsystem":"%s"        ,"timestamp":%.3f,]], 
+	local Msg  = string.format([[{"module":"market-data-gap","subsystem":"%s"        ,"timestamp":%i,"Location":"%s",]], 
 			Subsystem,
-			tonumber(TS) / 1e9
-	) 
-
+			tonumber(TS) / 1e9,
+			s_Location
+	)
 	return Msg
 end
 
@@ -556,12 +562,12 @@ lmain = function()
 
 			if (ProtoPort == nil) or (PortDst == ProtoPort) then 
 
-				-- decode it
-				local Session, SeqNo, Count, MsgTS, JStr = ProtoParser(UDPHeader + 1, Type_Decode, PayloadLength)
-				if (SeqNo ~= nil) then
+				-- network flow 
+				local Netflow = string.format("%s:udp:%6i", IPDst, PortDst)
 
-					-- network flow 
-					local Netflow = string.format("%s:udp:%6i", IPDst, PortDst)
+				-- decode it
+				local Session, SeqNo, Count, MsgTS, JStr = ProtoParser(UDPHeader + 1, Type_Decode, PayloadLength, PCAPTS)
+				if (SeqNo ~= nil) then
 
 					-- check for gaps
 					local GapCnt, DropCnt = GapDetect(PCAPTS, Netflow, Session, ProtoDesc, SeqNo, Count)
@@ -577,7 +583,7 @@ lmain = function()
 						if (JStr == nil) then JStr = "" 
 						else JStr = JStr .. ","
 						end
-						local Msg = string.format([[{"timestamp":%.3f,"TS":"%s_%s",%s"SeqNo":%i,"Count":%i,"GapCnt":%i}]], tonumber(PCAPTS) / 1e9, os.formatDate(PCAPTS), os.formatTS(PCAPTS), JStr, SeqNo, Count, GapCnt) 
+						local Msg = string.format([[{"timestamp":%i,"TS":"%s_%s",%s"SeqNo":%i,"Count":%i,"GapCnt":%i}]], tonumber(PCAPTS) / 1e9, os.formatDate(PCAPTS), os.formatTS(PCAPTS), JStr, SeqNo, Count, GapCnt) 
 						print(Msg)
 					end
 				end

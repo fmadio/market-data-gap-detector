@@ -327,3 +327,63 @@ g_ProtocolList["./omi/cme/Cme.Futures.Mdp3.Sbe.v1.12.h"] = function()
 end
 
 ----------------------------------------------------------------------------------------------------
+-- LSE MITCH v11.9 
+--
+--https://www.cmegroup.com/confluence/display/EPICSANDBOX/MDP+3.0+-+SBE+Technical+Header://docs.londonstockexchange.com/sites/default/files/documents/mit303issue119.pdf 
+--
+-- port config https://docs.londonstockexchange.com/sites/default/files/documents/gtp_004_parameters_guide_issue20.3.pdf
+--
+-- Level1          - port 60400
+-- Level2 MBO      - port 60400
+-- Level2 MBP      - port 60400
+-- Level2 Inc      - port 60400
+-- MBIF Post Trade - port 60400
+--
+-- seems onhly port 60400 has MITCH data, can drop all other ports
+--
+g_ProtocolList["./omi/lse/Lse.Millennium.Level2.Mitch.v11.9.h"] = function()
+
+	-- load header definitions 
+	ffi.cdef('#include "./omi/lse/Lse.Millennium.Level2.Mitch.v11.9.h"')
+
+	-- local accel 
+	local Type_u8 			= ffi.typeof("u8*")
+
+	local Type_PacketT 		= ffi.typeof("PacketT*")
+	local Sizeof_PacketT 	= ffi.sizeof("PacketT")
+
+	-- constants 
+
+	-- actual parser to return id, seqno and msg cnt
+	local Parser = function(_Payload, Type, Length, PCAPTS)
+
+		local Payload	= ffi_cast(Type_u8, _Payload)
+
+		local Packet 	= ffi_cast(Type_PacketT, _Payload)
+
+		local SeqNo		= Packet.UnitHeader.SequenceNumber 
+		local Count		= Packet.UnitHeader.MessageCount
+		local TS		= nil  -- has no timestamp on the message
+		local Session	= string.format("%c", Packet.UnitHeader.MarketDataGroup[0])
+
+	
+		if (g_IsVerbose ~= nil) then
+			print(string.format("[%s] : Seq:%16i Len:%5i MsgCnt:%i Group:%c", 
+					 	tostring(PCAPTS),
+						Packet.UnitHeader.SequenceNumber, 
+						Packet.UnitHeader.Length, 
+						Packet.UnitHeader.MessageCount,
+						Packet.UnitHeader.MarketDataGroup[0]
+			))
+		end
+	 
+		return Session, SeqNo, Count, TS
+	end
+
+	local Decode = function(_Payload, Type)
+	end
+
+	return Parser,Decode
+end
+
+----------------------------------------------------------------------------------------------------

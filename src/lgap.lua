@@ -87,8 +87,12 @@ GapDetect = function(PCAPTS, FlowStr, Session, ProtoDesc, SeqNo, MsgCnt)
 	else
 	end
 
-	S.LastSeq 	= SeqNo
-	S.NextSeq 	= SeqNo    + MsgCnt
+	-- increment only if its a newer seq no 
+	-- or seq number has wrapped
+	if (SeqNo == 0) or (SeqNo >= S.LastSeq) then
+		S.LastSeq 	= SeqNo
+		S.NextSeq 	= SeqNo    + MsgCnt
+	end
 	S.MsgCnt	= S.MsgCnt + MsgCnt
 
 	return GapCnt, DropCnt
