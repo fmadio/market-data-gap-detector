@@ -335,7 +335,7 @@ local ProtoName = nil
 local ProtoPort = nil
 local ProtoDesc = nil
 
-local s_TimestampMode 	= "wall"				-- default use walltime for the timestamp field
+local s_TimestampMode 	= "pcap"				-- default use pcap for the timestamp field, as the ingest process stamps the wall time
 local s_CPUPin			= nil					-- optionally pin to a specific CPU
 local s_Location		= "" 					-- location field in the json
 
@@ -443,9 +443,11 @@ SyslogHeader = function(Subsystem, PCAPTS)
 		TS = PCAPTS or 0
 	end
 
-	local Msg  = string.format([[{"module":"market-data-gap","subsystem":"%s"        ,"timestamp":%i,"Location":"%s",]], 
+	local Msg  = string.format([[{"module":"market-data-gap","subsystem":"%s"        ,"PCAPtimestamp":%i,"PCAPTime":"%s_%s","Location":"%s",]], 
 			Subsystem,
-			tonumber(TS) / 1e9,
+			tonumber(TS),
+			os.formatDate(TS), 
+			os.formatTS(TS), 
 			s_Location
 	)
 	return Msg
@@ -584,7 +586,14 @@ lmain = function()
 						if (JStr == nil) then JStr = "" 
 						else JStr = JStr .. ","
 						end
-						local Msg = string.format([[{"timestamp":%i,"TS":"%s_%s",%s"SeqNo":%i,"Count":%i,"GapCnt":%i}]], tonumber(PCAPTS) / 1e9, os.formatDate(PCAPTS), os.formatTS(PCAPTS), JStr, SeqNo, Count, GapCnt) 
+						local Msg = string.format([[{"PCAPtimestamp":%i,"PCAPTime":"%s_%s",%s"SeqNo":%i,"Count":%i,"GapCnt":%i}]], 
+													tostring(PCAPTS), 
+													os.formatDate(PCAPTS), 
+													os.formatTS(PCAPTS),
+													JStr, 
+													SeqNo, 
+													Count, 
+													GapCnt) 
 						print(Msg)
 					end
 				end
@@ -611,11 +620,10 @@ lmain = function()
 
 			-- write progress 
 			local Msg = SyslogHeader("status", PCAPTS) 
-			Msg = Msg .. string.format([["PCAPTime":"%s_%s","PCAPtimestamp":%i,"Protocol":"%s","TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
-
+			Msg = Msg .. string.format([["PCAPtimestamp":%s,"PCAPTime":"%s_%s","Protocol":"%s","TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
+					tostring(PCAPTS),
 					os.formatDate(PCAPTS), 
 					os.formatTS(PCAPTS), 
-					tonumber(PCAPTS)/1e9,
 					ProtoDesc,	
 					PCAPTotalByte,	
 					PCAPTotalPkt,	
