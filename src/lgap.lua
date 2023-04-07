@@ -66,9 +66,7 @@ GapDetect = function(PCAPTS, FlowStr, Session, ProtoDesc, SeqNo, MsgCnt)
 
 		-- generate alert
 		local AlertMsg = SyslogHeader("gap", PCAPTS) 
-		AlertMsg = AlertMsg .. string.format([["Protocol":"%s","Session":"%s","GapSize":%i,"SeqExpect":%i,"SeqFound":%i]],
-
-				ProtoDesc,	
+		AlertMsg = AlertMsg .. string.format([["Session":"%s","GapSize":%i,"SeqExpect":%i,"SeqFound":%i]],
 				Key, 
 				dSeq, 
 				S.NextSeq,

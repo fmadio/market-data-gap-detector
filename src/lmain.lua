@@ -443,12 +443,13 @@ SyslogHeader = function(Subsystem, PCAPTS)
 		TS = PCAPTS or 0
 	end
 
-	local Msg  = string.format([[{"module":"market-data-gap","subsystem":"%s"        ,"PCAPtimestamp":%i,"PCAPTime":"%s_%s","Location":"%s",]], 
+	local Msg  = string.format([[{"module":"market-data-gap","subsystem":"%s"        ,"PCAPtimestamp":%i,"PCAPTime":"%s_%s","Location":"%s","Protocol":"%s",]], 
 			Subsystem,
 			tonumber(TS),
 			os.formatDate(TS), 
 			os.formatTS(TS), 
-			s_Location
+			s_Location,
+			ProtoDesc
 	)
 	return Msg
 end
@@ -464,8 +465,6 @@ end
 
 -- get parser
 local ProtoParser = DecodeProto()
-
-
 
 --**************************************************************************************************************************************
 -- main decoder 
@@ -620,11 +619,7 @@ lmain = function()
 
 			-- write progress 
 			local Msg = SyslogHeader("status", PCAPTS) 
-			Msg = Msg .. string.format([["PCAPtimestamp":%s,"PCAPTime":"%s_%s","Protocol":"%s","TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
-					tostring(PCAPTS),
-					os.formatDate(PCAPTS), 
-					os.formatTS(PCAPTS), 
-					ProtoDesc,	
+			Msg = Msg .. string.format([["TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
 					PCAPTotalByte,	
 					PCAPTotalPkt,	
 					TotalGap,
