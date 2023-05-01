@@ -443,8 +443,9 @@ SyslogHeader = function(Subsystem, PCAPTS)
 		TS = PCAPTS or 0
 	end
 
-	local Msg  = string.format([[{"module":"market-data-gap","subsystem":"%s"        ,"PCAPtimestamp":%i,"PCAPTime":"%s_%s","Location":"%s","Protocol":"%s",]], 
+	local Msg  = string.format([[{"module":"market-data-gap","subsystem":"%s"        ,"timestamp":%i,"PCAPtimestamp":%i,"PCAPTime":"%s_%s","Location":"%s","Protocol":"%s",]], 
 			Subsystem,
+			os.clock_ns()/1e6,
 			tonumber(TS),
 			os.formatDate(TS), 
 			os.formatTS(TS), 
@@ -585,6 +586,7 @@ lmain = function()
 						if (JStr == nil) then JStr = "" 
 						else JStr = JStr .. ","
 						end
+
 						local Msg = string.format([[{"PCAPtimestamp":%i,"PCAPTime":"%s_%s",%s"SeqNo":%i,"Count":%i,"GapCnt":%i}]], 
 													tostring(PCAPTS), 
 													os.formatDate(PCAPTS), 
@@ -619,7 +621,8 @@ lmain = function()
 
 			-- write progress 
 			local Msg = SyslogHeader("status", PCAPTS) 
-			Msg = Msg .. string.format([["TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
+			Msg = Msg .. string.format([[,"TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
+					os.clock_ns()/1e9,
 					PCAPTotalByte,	
 					PCAPTotalPkt,	
 					TotalGap,
