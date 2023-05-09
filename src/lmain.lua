@@ -558,7 +558,7 @@ lmain = function()
 				local PktPayload = ffi_cast(Type_Payload_t, _PktPayload) 
 
 				-- pcap timestamp
-				local PCAPTS = PktHeader.Sec * 1000000000ULL + PktHeader.NSec
+				PCAPTS = PktHeader.Sec * 1000000000ULL + PktHeader.NSec
 
 				-- ethernetheader
 				local Ether 	= ffi.cast("fEther_t*", PktPayload)
