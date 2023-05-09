@@ -147,6 +147,9 @@ ffi.cdef[[
 
 	u64 ffi_rdtsc		(void);
 	u64 ffi_clock_ns	(void);
+
+
+	int wait_stdin(int timeout);
 ]]
 
 local swap64 		= ffi.C.ffi_swap64
@@ -485,25 +488,8 @@ lmain = function()
 	local PCAPTScale	= 0
 
 	local pcap 			= io.stdin
-	local _PCAPHeader 	= pcap:read(ffi.sizeof("PCAPHeader_t"))
-	if (_PCAPHeader == nil) then
-		trace("*ERROR* Failed to read from STDIN\n")
-		return
-	end
-	local PCAPHeader 	= ffi.cast("PCAPHeader_t*", _PCAPHeader)
 
-	-- work out timescale 
-	if (PCAPHeader.Magic ==  tonumber(ffi.lcpp_defs.PCAPHEADER_MAGIC_NANO)) then
-		trace("PCAP Nano\n")
-		PCAPTScale	= 1
-
-	elseif (PCAPHeader.Magic ==  tonumber(ffi.lcpp_defs.PCAPHEADER_MAGIC_USEC)) then
-
-		trace("PCAP usec\n")
-		PCAPTScale	= 1000
-	else
-		trace("PCAP Unkonwn type:%x\n", PCAPHeader.Magic)
-	end
+	local PacketBuffer			= ffi.C.malloc(16*1024)
 
 	local TSStart = os.clock_ns()
 
@@ -516,94 +502,150 @@ lmain = function()
 	local TotalMsg				= 0
 	local TotalGap				= 0
 	local TotalDrop				= 0
+	local TotalReset			= 0
+
+	local MDLatencyEMA_Alpha	= 0.1 
+	local MDLatencyEMA			= 0
+	local MDLatencyS0			= 0
+	local MDLatencyS1			= 0
+	local MDLatencyS2			= 0
+	local MDLatencyMin			= 0
+	local MDLatencyMax			= 0
+
+	local PCAPTS				= 0
 
 	local NextStatusTSC			= 0
 
 	while true do 
 
-		-- read pcap header
-		local _PktHeader = pcap:read(Sizeof_PCAPPacket_t)
-		if (_PktHeader == nil) then break end
+		-- need to constantly output the status, even when theres no traffic
+		if (ffi.C.wait_stdin(1) ~= 0) then
 
-		local PktHeader = ffi_cast(Type_PCAPPacket_t, _PktHeader)
+			-- read pcap file header
+			if (PCAPTScale == 0) then
 
-		local _PktPayload = pcap:read(PktHeader.LengthCapture)
-		if (_PktPayload == nil) then break end
-		local PktPayload = ffi_cast(Type_Payload_t, _PktPayload) 
+				local _PCAPHeader 	= pcap:read(ffi.sizeof("PCAPHeader_t"))
+				if (_PCAPHeader == nil) then
+					trace("*ERROR* Failed to read from STDIN\n")
+					return
+				end
+				local PCAPHeader 	= ffi.cast("PCAPHeader_t*", _PCAPHeader)
 
-		-- pcap timestamp
-		local PCAPTS = PktHeader.Sec * 1000000000ULL + PktHeader.NSec
+				-- work out timescale 
+				if (PCAPHeader.Magic ==  tonumber(ffi.lcpp_defs.PCAPHEADER_MAGIC_NANO)) then
+					trace("PCAP Nano\n")
+					PCAPTScale	= 1
 
-		-- ethernetheader
-		local Ether 	= ffi.cast("fEther_t*", PktPayload)
+				elseif (PCAPHeader.Magic ==  tonumber(ffi.lcpp_defs.PCAPHEADER_MAGIC_USEC)) then
 
-		-- ip header (assuming)
-		local Proto 	= ffi.C.ffi_swap16(Ether.Proto)
-		local IPHeader 	= ffi.cast("IPv4Header_t*", Ether + 1)
+					trace("PCAP usec\n")
+					PCAPTScale	= 1000
+				else
+					trace("PCAP Unkonwn type:%x\n", PCAPHeader.Magic)
+				end
 
-		-- strip vlan tag
-		if (Proto == 0x8100) then
-		
-			local VLAN = ffi.cast("VLANHeader_t*", Ether + 1)
+			-- read pcap packet 
+			else
 
-			IPHeader = ffi.cast("IPv4Header_t*", VLAN + 1) 
-		end
+				-- read pcap packet header
+				local _PktHeader = pcap:read(Sizeof_PCAPPacket_t)
+				if (_PktHeader == nil) then break end
+				local PktHeader = ffi_cast(Type_PCAPPacket_t, _PktHeader)
 
-		-- udp header
-		local DecodePayload = nil
-		if (IPHeader.Proto == 0x11) then
+				-- read pcap packet payload
+				local _PktPayload = pcap:read(PktHeader.LengthCapture)
+				if (_PktPayload == nil) then break end
+				local PktPayload = ffi_cast(Type_Payload_t, _PktPayload) 
 
-			-- move to UDP header
-			local UDPHeader = ffi_cast("UDPHeader_t*", ffi.cast("u8*", IPHeader) + IPHeader.HLen*4) 
+				-- pcap timestamp
+				local PCAPTS = PktHeader.Sec * 1000000000ULL + PktHeader.NSec
 
-			-- dst ip
-			local IPDst = string.format("%3i.%3i.%3i.%3i", IPHeader.Dst[0], IPHeader.Dst[1], IPHeader.Dst[2], IPHeader.Dst[3])
+				-- ethernetheader
+				local Ether 	= ffi.cast("fEther_t*", PktPayload)
 
-			-- dst port filter
-			local PortDst 	 	= ffi.C.ffi_swap16(UDPHeader.PortDst)
-			local PayloadLength = ffi.C.ffi_swap16(UDPHeader.Length)
+				-- ip header (assuming)
+				local Proto 	= ffi.C.ffi_swap16(Ether.Proto)
+				local IPHeader 	= ffi.cast("IPv4Header_t*", Ether + 1)
 
-			if (ProtoPort == nil) or (PortDst == ProtoPort) then 
+				-- strip vlan tag
+				if (Proto == 0x8100) then
+				
+					local VLAN = ffi.cast("VLANHeader_t*", Ether + 1)
 
-				-- network flow 
-				local Netflow = string.format("%s:udp:%6i", IPDst, PortDst)
+					IPHeader = ffi.cast("IPv4Header_t*", VLAN + 1) 
+				end
 
-				-- decode it
-				local Session, SeqNo, Count, MsgTS, JStr = ProtoParser(UDPHeader + 1, Type_Decode, PayloadLength, PCAPTS)
-				if (SeqNo ~= nil) then
+				-- udp header
+				local DecodePayload = nil
+				if (IPHeader.Proto == 0x11) then
 
-					-- check for gaps
-					local GapCnt, DropCnt = GapDetect(PCAPTS, Netflow, Session, ProtoDesc, SeqNo, Count)
+					-- move to UDP header
+					local UDPHeader = ffi_cast("UDPHeader_t*", ffi.cast("u8*", IPHeader) + IPHeader.HLen*4) 
 
-					-- update stats
-					TotalMsg  = TotalMsg  + Count
-					TotalGap  = TotalGap  + GapCnt
-					TotalDrop = TotalDrop + DropCnt
+					-- dst ip
+					local IPDst = string.format("%3i.%3i.%3i.%3i", IPHeader.Dst[0], IPHeader.Dst[1], IPHeader.Dst[2], IPHeader.Dst[3])
 
-					-- verbose output
-					if (g_IsVerbose == 2) then
+					-- dst port filter
+					local PortDst 	 	= ffi.C.ffi_swap16(UDPHeader.PortDst)
+					local PayloadLength = ffi.C.ffi_swap16(UDPHeader.Length)
 
-						if (JStr == nil) then JStr = "" 
-						else JStr = JStr .. ","
+					if (ProtoPort == nil) or (PortDst == ProtoPort) then 
+
+						-- network flow 
+						local Netflow = string.format("%s:udp:%6i", IPDst, PortDst)
+
+						-- decode it
+						local Session, SeqNo, Count, MsgTS, JStr = ProtoParser(UDPHeader + 1, Type_Decode, PayloadLength, PCAPTS)
+						if (SeqNo ~= nil) then
+
+							-- check for gaps
+							local GapCnt, DropCnt, ResetCnt = GapDetect(PCAPTS, Netflow, Session, ProtoDesc, SeqNo, Count)
+
+							-- update stats
+							TotalMsg	= TotalMsg  + Count
+							TotalGap	= TotalGap  + GapCnt
+							TotalDrop	= TotalDrop + DropCnt
+							TotalReset	= TotalReset + ResetCnt 
+
+							-- verbose output
+							if (g_IsVerbose == 2) then
+
+								if (JStr == nil) then JStr = "" 
+								else JStr = JStr .. ","
+								end
+
+								local Msg = string.format([[{"PCAPtimestamp":%i,"PCAPTime":"%s_%s",%s"SeqNo":%i,"Count":%i,"GapCnt":%i,"ResetCnt":%i}]], 
+															tostring(PCAPTS), 
+															os.formatDate(PCAPTS), 
+															os.formatTS(PCAPTS),
+															JStr, 
+															SeqNo, 
+															Count, 
+															GapCnt,
+															ResetCnt) 
+								print(Msg)
+							end
+
+
+							-- latency stats
+							if (MsgTS ~= 0) then
+
+								local dT = tonumber(PCAPTS - MsgTS)
+
+								MDLatencyEMA = (1 - MDLatencyEMA_Alpha) * MDLatencyEMA + MDLatencyEMA_Alpha * dT
+
+								MDLatencyMin = math.min(MDLatencyMin, dT)
+								MDLatencyMax = math.max(MDLatencyMax, dT)
+							end
 						end
-
-						local Msg = string.format([[{"PCAPtimestamp":%i,"PCAPTime":"%s_%s",%s"SeqNo":%i,"Count":%i,"GapCnt":%i}]], 
-													tostring(PCAPTS), 
-													os.formatDate(PCAPTS), 
-													os.formatTS(PCAPTS),
-													JStr, 
-													SeqNo, 
-													Count, 
-													GapCnt) 
-						print(Msg)
 					end
 				end
+
+				-- top level stats
+				PCAPTotalByte 	= PCAPTotalByte + Sizeof_PCAPPacket_t + PktHeader.LengthCapture
+				PCAPTotalPkt 	= PCAPTotalPkt + 1
 			end
 		end
-
-		-- top level stats
-		PCAPTotalByte 	= PCAPTotalByte + Sizeof_PCAPPacket_t + PktHeader.LengthCapture
-		PCAPTotalPkt 	= PCAPTotalPkt + 1
 
 		-- print status info
 		local TSC = ffi.C.ffi_rdtsc()
@@ -614,40 +656,54 @@ lmain = function()
 			local TS  = os.clock_ns()
 			local dT  = tonumber(TS - TSStart) / 1e9
 			local pps = tonumber(PCAPTotalPkt) / dT
-			local bps = tonumber(PCAPTotalByte) * 8.0 / dT
-			local mps = tonumber(TotalMsg) * 8.0 / dT
+			local bps = (tonumber(PCAPTotalByte) * 8.0) / dT
+			local mps = (tonumber(TotalMsg) * 8.0) / dT
 
 			local Lag	= tonumber(TS) - tonumber(PCAPTS)
 
 			-- write progress 
 			local Msg = SyslogHeader("status", PCAPTS) 
-			Msg = Msg .. string.format([["TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
-					os.clock_ns()/1e9,
+			Msg = Msg .. string.format([["TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,"TotalReset":%i,]],
 					PCAPTotalByte,	
 					PCAPTotalPkt,	
 					TotalGap,
-					TotalDrop
+					TotalDrop,
+					TotalReset
 			)
 
-			Msg = Msg .. string.format([["MarketGap_bps":%i,"MarketGap_pps":%i,"MarketGap_mps":%i,"MarketGap_Lag":%.6f]],
+			-- thoughput
+
+			Msg = Msg .. string.format([["MarketGap_bps":%i,"MarketGap_pps":%i,"MarketGap_mps":%i,"MarketGap_Lag":%i,]],
 					bps,
 					pps,
 					mps,
-					Lag / 1e9
+					Lag
+			)
+
+			-- latency stats
+
+			Msg = Msg .. string.format([["LatencyEMA":%i,"LatencyMin":%i,"LatencyMax":%i]],
+					MDLatencyEMA,
+					MDLatencyMin,
+					MDLatencyMax
 			)
 
 			Msg = Msg .. "}"		
 			Logger(Msg)
 
-			io.stderr:write(string.format("%10.3fGB %8.3fM pcap:%6i %10.3fMbps %10.3fMpps %10.3fMmps Gaps:%8i Drops:%8i\n", 	
+			io.stderr:write(string.format("%10.3fGB %8.3fM %10.3fMbps %10.3fMpps %10.3fMmps Gaps:%8i Drops:%8i\n", 	
 																					PCAPTotalByte/1e9, 
 																					tonumber(PCAPTotalPkt)/1e6, 
-																					PktHeader.LengthCapture, 
 																					bps/1e6, 
 																					pps/1e6, 
 																					mps/1e6,
 																					TotalGap,
 																					TotalDrop))
+
+
+			-- reset stats
+			MDLatencyMax = 0
+			MDLatencyMin = 1e100 
 		end
 	end
 

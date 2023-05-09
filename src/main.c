@@ -73,7 +73,7 @@ static void lsignal (int i, siginfo_t* si, void* context)
 	case SIGTRAP:
 	case SIGSEGV:
 	case SIGBUS:
-		fprintf(stderr, "    Bus error: 0x%016llx\n", si->si_addr);
+		fprintf(stderr, "    Bus error: 0x%016p\n", si->si_addr);
 		break;
 
 	default:
@@ -375,8 +375,41 @@ static int lfile_size (lua_State* L)
 
 static int lformatDate(lua_State* L)
 {
-	u64 *p 			= (u64*)lua_topointer(L, -1); 
-	u64 t 			= p[0]; 
+	u64 t = 0;
+	u32 Type = lua_type(L, -1);
+	switch (Type)
+	{
+	case LUA_TCDATA:
+	{
+		u64 *p 	= (u64*)lua_topointer(L, -1); 
+		assert(p != NULL);
+
+		t 		= p[0]; 
+	}
+	break;
+
+	// NOTE: there is precision loss
+	case LUA_TNUMBER:
+	{
+		double d = lua_tonumber(L, -1);
+		t = d;
+	}
+	break;
+
+	default:
+	{
+		printf("formatTS type undefined: %i\n", Type);
+		assert(false);
+	}
+	break;
+	}
+
+	if (t == 0)
+	{
+		lua_pushstring(L, "0000.00.00");
+		return 1;
+	}
+
 
 	clock_date_t c	= ns2clock(t);
 
@@ -421,6 +454,29 @@ static int lformatTS(lua_State* L)
 	char* Str = FormatTS(t);
 	lua_pushstring(L, Str);
 	return 1;
+}
+
+//-------------------------------------------------------------------------------
+// return if theres data pending or not 
+int wait_stdin(int t)
+{
+    int fd 		= 0; 
+
+    struct timeval timeout;
+    timeout.tv_sec	= t;
+    timeout.tv_usec = 0;
+
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(fd, &readfds);
+
+    int ret = select(fd + 1, &readfds, NULL, NULL, &timeout);
+
+	// theres data
+	if (ret > 0) return 1;
+
+	// timedout
+	return 0;
 }
 
 //-------------------------------------------------------------------------------

@@ -18,6 +18,7 @@ setmetatable(g_SessionList, {
 __index = function(t, k)
 	t[k] =
 	{
+		Init		= true,
 		NextSeq 	= 0,
 		LastSeq 	= 0,
 		MsgCnt 		= 0,
@@ -50,37 +51,50 @@ GapDetect = function(PCAPTS, FlowStr, Session, ProtoDesc, SeqNo, MsgCnt)
 		return  0,0
 	end 
 
-	-- calculate the seq gap
 	local GapCnt 	= 0
 	local DropCnt 	= 0
+	local ResetCnt 	= 0
 
-	local dSeq = SeqNo - S.NextSeq
+	-- ignore first packet
+	if (S.Init ~= true) then 
 
-	if (dSeq > 0) and (S.NextSeq ~= 0) then
 
-		GapCnt 		= 1
-		DropCnt		= math.abs(tonumber(dSeq))
+		-- calculate the seq gap
+		local dSeq = SeqNo - S.NextSeq
 
-		S.GapCnt	= S.GapCnt + 1
-		S.DropCnt	= S.DropCnt + DropCnt 
+		-- forward gap 
+		if (dSeq >= 1) then
 
-		-- generate alert
-		local AlertMsg = SyslogHeader("gap", PCAPTS) 
-		AlertMsg = AlertMsg .. string.format([["Session":"%s","GapSize":%i,"SeqExpect":%i,"SeqFound":%i]],
-				Key, 
-				dSeq, 
-				S.NextSeq,
-				SeqNo)
+			GapCnt 		= 1
+			DropCnt		= math.abs(tonumber(dSeq))
 
-		AlertMsg = AlertMsg .. "}"		
-		Logger(AlertMsg)
+			S.GapCnt	= S.GapCnt + 1
+			S.DropCnt	= S.DropCnt + DropCnt 
 
-	-- count resets
-	elseif (dSeq < 0) then
+			-- generate alert
+			local AlertMsg = SyslogHeader("gap", PCAPTS) 
+			AlertMsg = AlertMsg .. string.format([["Session":"%s","GapSize":%i,"SeqExpect":%i,"SeqFound":%i]],
+					Key, 
+					dSeq, 
+					S.NextSeq,
+					SeqNo)
 
-		S.ResetCnt	= S.ResetCnt + 1
-	else
+			AlertMsg = AlertMsg .. "}"		
+			Logger(AlertMsg)
+
+		-- repeat
+		elseif (dSeq == 0) then
+
+			-- do nothing
+
+		-- negative gap / reset	
+		elseif (dSeq < 0) then
+
+			ResetCnt 	= 1
+			S.ResetCnt	= S.ResetCnt + 1
+		end
 	end
+	S.Init = false
 
 	-- increment only if its a newer seq no 
 	-- or seq number has wrapped
@@ -90,7 +104,7 @@ GapDetect = function(PCAPTS, FlowStr, Session, ProtoDesc, SeqNo, MsgCnt)
 	end
 	S.MsgCnt	= S.MsgCnt + MsgCnt
 
-	return GapCnt, DropCnt
+	return GapCnt, DropCnt, ResetCnt
 end
 
 ----------------------------------------------------------------------------------------------------------------------------
