@@ -621,7 +621,7 @@ lmain = function()
 
 			-- write progress 
 			local Msg = SyslogHeader("status", PCAPTS) 
-			Msg = Msg .. string.format([[,"TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
+			Msg = Msg .. string.format([["TotalByte":%i,"TotalPkt":%i,"TotalGap":%i,"TotalDrop":%i,]],
 					os.clock_ns()/1e9,
 					PCAPTotalByte,	
 					PCAPTotalPkt,	
