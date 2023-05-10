@@ -1459,8 +1459,11 @@ typedef struct {
  * Bitfield: Strategy Authorized
  */ 
 typedef struct {
-    uint64_t
-    Reserved16 : 16,
+
+	// luajit cant do 64bit field definitions
+	uint64_t  field;
+/*
+    Reserved16 : 16;
     PutStraddleVersusSellACallOrAPut : 1,
     PutSpreadVersusSellACall : 1,
     CallSpreadVersusSellAPut : 1,
@@ -1508,7 +1511,10 @@ typedef struct {
     Spread : 1,
     CallOrPutCabinet : 1,
     Butterfly : 1,
+
     JellyRoll : 1;
+*/
+
 } StrategyAuthorizedT;
 
 /*
