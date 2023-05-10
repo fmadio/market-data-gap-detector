@@ -397,7 +397,7 @@ end
 -- Italy
 -- 10057 - FBOU 10G
 --
-g_ProtocolList["./omi/euronextEuronext.Optiq.MarketDataGateway.Sbe.v4.13.h"] = function()
+g_ProtocolList["./omi/euronext/Euronext.Optiq.MarketDataGateway.Sbe.v4.13.h"] = function()
 
 	-- load header definitions 
 	ffi.cdef('#include "./omi/euronext/Euronext.Optiq.MarketDataGateway.Sbe.v4.13.h"')
