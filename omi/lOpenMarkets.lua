@@ -363,7 +363,7 @@ g_ProtocolList["./omi/lse/Lse.Millennium.Level2.Mitch.v11.9.h"] = function()
 
 		local SeqNo		= Packet.UnitHeader.SequenceNumber 
 		local Count		= Packet.UnitHeader.MessageCount
-		local TS		= nil  -- has no timestamp on the message
+		local TS		= 0			-- nee to track seconds and message type 
 		local Session	= string.format("%c", Packet.UnitHeader.MarketDataGroup[0])
 
 	
@@ -385,5 +385,64 @@ g_ProtocolList["./omi/lse/Lse.Millennium.Level2.Mitch.v11.9.h"] = function()
 
 	return Parser,Decode
 end
+
+----------------------------------------------------------------------------------------------------
+-- Euronext 4.13 Market data 
+--
+-- port config https://connect2.euronext.com/sites/default/files/it-documentation/Euronext%20Optiq%20Market%20Data%20Gateway%20Production%20Environment%20v2.3.pdf 
+--
+-- 10130 - REFT 100M 
+-- 10135 - FBOU 10G (FUNDS?)
+--
+-- Italy
+-- 10057 - FBOU 10G
+--
+g_ProtocolList["./omi/euronextEuronext.Optiq.MarketDataGateway.Sbe.v4.13.h"] = function()
+
+	-- load header definitions 
+	ffi.cdef('#include "./omi/euronext/Euronext.Optiq.MarketDataGateway.Sbe.v4.13.h"')
+
+	-- local accel 
+	local Type_u8 			= ffi.typeof("u8*")
+
+	local Type_PacketT 		= ffi.typeof("PacketT*")
+	local Sizeof_PacketT 	= ffi.sizeof("PacketT")
+
+	-- constants 
+
+	-- actual parser to return id, seqno and msg cnt
+	local Parser = function(_Payload, Type, Length, PCAPTS)
+
+		local Payload	= ffi_cast(Type_u8, _Payload)
+
+		local Packet 	= ffi_cast(Type_PacketT, _Payload)
+
+
+		local MDHeader 	= Packet.MarketDataPacketHeader;
+
+		local SeqNo		= MDHeader.PacketSequenceNumber
+		local Count		= 1 
+		local TS		= MDHeader.PacketTime;
+		local Session	= string.format("%i", MDHeader.ChannelId) 
+
+	
+		if (g_IsVerbose ~= nil) then
+			print(string.format("[%s] : Seq:%16i TS:%i Channel:%i", 
+					 	tostring(PCAPTS),
+						MDHeader.PacketSequenceNumber,
+						MDHeader.PacketTime,
+						MDHeader.ChannelId
+			))
+		end
+	 
+		return Session, SeqNo, Count, TS
+	end
+
+	local Decode = function(_Payload, Type)
+	end
+
+	return Parser,Decode
+end
+
 
 ----------------------------------------------------------------------------------------------------
