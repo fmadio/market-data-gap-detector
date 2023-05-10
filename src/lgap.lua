@@ -48,7 +48,7 @@ GapDetect = function(PCAPTS, FlowStr, Session, ProtoDesc, SeqNo, MsgCnt)
 	-- e.g. sending of the same message multiple times
 	if (SeqNo == S.LastSeq) then 
 		S.DupCnt = S.DupCnt + 1
-		return  0,0
+		return  0,0,0
 	end 
 
 	local GapCnt 	= 0
