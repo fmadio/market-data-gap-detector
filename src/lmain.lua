@@ -491,7 +491,7 @@ lmain = function()
 
 	local PacketBuffer			= ffi.C.malloc(16*1024)
 
-	local TSStart = os.clock_ns()
+	local TSStart 				= os.clock_ns()
 
 	local Sizeof_PCAPPacket_t 	= ffi.sizeof("PCAPPacket_t")
 
@@ -515,6 +515,12 @@ lmain = function()
 	local PCAPTS				= 0
 
 	local NextStatusTSC			= 0
+
+	-- stats
+	local LastTS				= TSStart
+	local LastPCAPTotalPkt		= 0 
+	local LastPCAPTotalByte		= 0 
+	local LastTotalMsg			= 0 
 
 	while true do 
 
@@ -654,10 +660,11 @@ lmain = function()
 			NextStatusTSC = TSC + 3e9
 
 			local TS  = os.clock_ns()
-			local dT  = tonumber(TS - TSStart) / 1e9
-			local pps = tonumber(PCAPTotalPkt) / dT
-			local bps = (tonumber(PCAPTotalByte) * 8.0) / dT
-			local mps = (tonumber(TotalMsg) * 8.0) / dT
+			local dT  = tonumber(TS - LastTS) / 1e9
+			
+			local pps = tonumber (PCAPTotalPkt  - LastPCAPTotalPkt) / dT
+			local bps = (tonumber(PCAPTotalByte - LastPCAPTotalByte) * 8.0) / dT
+			local mps = (tonumber(TotalMsg      - LastTotalMsg) * 8.0) / dT
 
 			local Lag	= tonumber(TS) - tonumber(PCAPTS)
 
@@ -691,7 +698,7 @@ lmain = function()
 			Msg = Msg .. "}"		
 			Logger(Msg)
 
-			io.stderr:write(string.format("%10.3fGB %8.3fM %10.3fMbps %10.3fMpps %10.3fMmps Gaps:%8i Drops:%8i\n", 	
+			io.stderr:write(string.format("status %10.3fGB %8.3fM %10.3fMbps %10.3fMpps %10.3fMmps Gaps:%8i Drops:%8i\n", 	
 																					PCAPTotalByte/1e9, 
 																					tonumber(PCAPTotalPkt)/1e6, 
 																					bps/1e6, 
@@ -704,6 +711,11 @@ lmain = function()
 			-- reset stats
 			MDLatencyMax = 0
 			MDLatencyMin = 1e100 
+
+			-- stats for 
+			LastPCAPTotalPkt 	= PCAPTotalPkt
+			LastPCAPTotalByte	= PCAPTotalByte 
+			LastTotalMsg 		= TotalMsg 
 		end
 	end
 
